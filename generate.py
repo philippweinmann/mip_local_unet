@@ -27,3 +27,13 @@ def get_image():
         mask[rand_int:rand_int + 5] = 1
 
     return image, mask
+
+def get_batch(batch_size: int):
+    images = []
+    masks = []
+    for _ in range(batch_size):
+        image, mask = get_image()
+        images.append(image[None,:,:])
+        masks.append(mask[None,:,:])
+
+    return np.array(images), np.array(masks)
