@@ -23,13 +23,22 @@ torch.set_default_device(device)
 
 print(f"Using {device} device. Every tensor created will be by default on {device}")
 # %%
-def displayImageMaskTuple(image, mask):
-    fig, ax = plt.subplots(1, 2, figsize=(10, 5))
+def displayImageMaskTuple(image, mask, predicted_mask = None):
+    if predicted_mask is not None:
+        amt_subplots = 3
+    else:
+        amt_subplots = 2
+    
+    fig, ax = plt.subplots(1, amt_subplots, figsize=(10, 5))
     ax[0].imshow(image, cmap='gray')
     ax[0].set_title('Image')
 
     ax[1].imshow(mask, cmap='gray')
     ax[1].set_title('Mask')
+
+    if predicted_mask is not None:
+        ax[2].imshow(predicted_mask, cmap='gray')
+        ax[2].set_title('Predicted Mask')
 
 image, mask = get_image()
 displayImageMaskTuple(image, mask)
@@ -39,17 +48,23 @@ image = image[None, None, :, :]
 print(image.shape)
 
 # %%
-t_image = torch.tensor(image, dtype=torch.float32)
 model = UNet(in_channels=1, num_classes=1)
-model.to(device)
-pred = model(t_image)
+model.to(device);
 # %%
-print(pred.shape)
-pred_np = pred.detach().cpu().numpy()
-pred_np = np.squeeze(pred_np)
-print(pred_np.shape)
+def visualize_model_progress(model):
+    original_img, original_mask = get_image()
+    image = original_img[None, None, :, :]
+    mask = original_mask[None, None, :, :]
 
-displayImageMaskTuple(np.squeeze(image), pred_np)
+    t_image = torch.tensor(image, dtype=torch.float32)
+    pred = model(t_image)
+    pred_np = pred.detach().cpu().numpy()
+    pred_np = np.squeeze(pred_np)
+
+    displayImageMaskTuple(original_img, original_mask, pred_np)
+
+
+visualize_model_progress(model)
 # %%
 # train loop
 def train_loop(model, loss_fn, optimizer, batch_size = 10, training_batches = 100):
@@ -102,11 +117,18 @@ loss_fn = nn.BCELoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
 epochs = 10
 
-for t in range(epochs):
-    print(f"Epoch {t+1}\n-------------------------------")
-    train_loop(model, loss_fn, optimizer)
-	# testing for each epoch to track the models performance during training.
-    test_loop(model, loss_fn)
-print("Done!")
+try:
+    for t in range(epochs):
+        print(f"Epoch {t+1}\n-------------------------------")
+        train_loop(model, loss_fn, optimizer)
+        # testing for each epoch to track the models performance during training.
+        test_loop(model, loss_fn)
+    print("Done!")
+except KeyboardInterrupt:
+     print("training interrupted by the user")
+
+# %%
+visualize_model_progress(model)
+
 
 # %%
