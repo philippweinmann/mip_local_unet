@@ -23,13 +23,16 @@ torch.set_default_device(device)
 
 print(f"Using {device} device. Every tensor created will be by default on {device}")
 # %%
-image, mask = get_image()
-fig, ax = plt.subplots(1, 2, figsize=(10, 5))
-ax[0].imshow(image, cmap='gray')
-ax[0].set_title('Image')
+def displayImageMaskTuple(image, mask):
+    fig, ax = plt.subplots(1, 2, figsize=(10, 5))
+    ax[0].imshow(image, cmap='gray')
+    ax[0].set_title('Image')
 
-ax[1].imshow(mask, cmap='gray')
-ax[1].set_title('Mask')
+    ax[1].imshow(mask, cmap='gray')
+    ax[1].set_title('Mask')
+
+image, mask = get_image()
+displayImageMaskTuple(image, mask)
 # %%
 print(image.shape)
 image = image[None, None, :, :]
@@ -39,7 +42,14 @@ print(image.shape)
 t_image = torch.tensor(image, dtype=torch.float32)
 model = UNet(in_channels=1, num_classes=1)
 model.to(device)
-model(t_image)
+pred = model(t_image)
+# %%
+print(pred.shape)
+pred_np = pred.detach().cpu().numpy()
+pred_np = np.squeeze(pred_np)
+print(pred_np.shape)
+
+displayImageMaskTuple(np.squeeze(image), pred_np)
 # %%
 # train loop
 def train_loop(model, loss_fn, optimizer, batch_size = 10, training_batches = 100):
