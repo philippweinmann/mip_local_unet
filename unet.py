@@ -70,6 +70,9 @@ class UNet(nn.Module):
         up_3 = self.up_convolution_3(up_2, down_2)  
         up_4 = self.up_convolution_4(up_3, down_1)  
   
-        out = self.out(up_4)  
+        out = self.out(up_4)
+
+        # let's adapt the output for the loss
+        out = torch.sigmoid(out)
         return out
     

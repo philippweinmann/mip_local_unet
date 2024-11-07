@@ -62,6 +62,8 @@ def train_loop(model, loss_fn, optimizer, batch_size = 10, training_batches = 10
         images = torch.tensor(images, dtype=torch.float32)
         masks = torch.tensor(masks, dtype=torch.float32)
 
+        optimizer.zero_grad()
+
         # Compute prediction and loss
         pred = model(images)
         loss = loss_fn(pred, masks)
@@ -69,9 +71,9 @@ def train_loop(model, loss_fn, optimizer, batch_size = 10, training_batches = 10
         # Backpropagation
         loss.backward()
         optimizer.step()
-        optimizer.zero_grad()
+        
 
-        if batch_number % 5 == 0:
+        if batch_number % 1 == 0:
             loss = loss.item()
             print(f"loss: {loss:>7f}  [{batch_number:>5d}/{training_batches:>5d}]")
 
@@ -88,7 +90,7 @@ def test_loop(model, loss_fn, batch_size = 10, test_batches = 20):
 
         with torch.no_grad():
             pred = model(images)
-            test_loss += loss_fn(pred, mask).item()
+            test_loss += loss_fn(pred, masks).item()
 
     test_loss /= test_batches
     print(f"Test loss: {test_loss:>8f} \n")
@@ -96,7 +98,7 @@ def test_loop(model, loss_fn, batch_size = 10, test_batches = 20):
 
 # %%
 # running it
-loss_fn = nn.CrossEntropyLoss()
+loss_fn = nn.BCELoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
 epochs = 10
 
