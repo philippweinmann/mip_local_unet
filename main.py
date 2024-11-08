@@ -2,12 +2,13 @@
 %load_ext autoreload
 %autoreload 2
 
-from generate import get_image, get_batch
+from generate import get_image_with_stripes, get_batch, get_image_with_random_shapes
 from unet import UNet
 import numpy as np
 from matplotlib import pyplot as plt
 import torch
 import torch.nn as nn
+from net_utils import get_weighted_bce_loss, iou
 # %%
 # define which device is used for training
 
@@ -40,7 +41,8 @@ def displayImageMaskTuple(image, mask, predicted_mask = None):
         ax[2].imshow(predicted_mask, cmap='gray')
         ax[2].set_title('Predicted Mask')
 
-image, mask = get_image()
+# image, mask = get_image_with_stripes()
+image, mask = get_image_with_random_shapes()
 displayImageMaskTuple(image, mask)
 # %%
 print(image.shape)
@@ -51,10 +53,9 @@ print(image.shape)
 model = UNet(in_channels=1, num_classes=1)
 model.to(device);
 # %%
-def visualize_model_progress(model):
-    original_img, original_mask = get_image()
+def visualize_model_progress(model, get_image_fct):
+    original_img, original_mask = get_image_fct()
     image = original_img[None, None, :, :]
-    mask = original_mask[None, None, :, :]
 
     t_image = torch.tensor(image, dtype=torch.float32)
     pred = model(t_image)
@@ -64,16 +65,16 @@ def visualize_model_progress(model):
     displayImageMaskTuple(original_img, original_mask, pred_np)
 
 
-visualize_model_progress(model)
+visualize_model_progress(model, get_image_fct=get_image_with_random_shapes)
 # %%
 # train loop
-def train_loop(model, loss_fn, optimizer, batch_size = 10, training_batches = 100):
+def train_loop(model, loss_fn, optimizer, batch_size = 10, training_batches = 40):
     # Set the model to training mode - important for batch normalization and  dropout layers
     # Unnecessary in this situation but added for best practices
     model.train()
     
     for batch_number in range(training_batches):
-        images, masks = get_batch(batch_size)
+        images, masks = get_batch(get_image_with_random_shapes, batch_size)
         images = torch.tensor(images, dtype=torch.float32)
         masks = torch.tensor(masks, dtype=torch.float32)
 
@@ -82,14 +83,15 @@ def train_loop(model, loss_fn, optimizer, batch_size = 10, training_batches = 10
         # Compute prediction and loss
         pred = model(images)
         loss = loss_fn(pred, masks)
+        jackard_index = iou(masks.detach().cpu().numpy(), pred.detach().cpu().numpy())
 
         # Backpropagation
         loss.backward()
         optimizer.step()
         
-
         if batch_number % 1 == 0:
             loss = loss.item()
+            print(f"Jackard Index: {jackard_index:>8f} \n")
             print(f"loss: {loss:>7f}  [{batch_number:>5d}/{training_batches:>5d}]")
 
 # %%
@@ -97,9 +99,10 @@ def train_loop(model, loss_fn, optimizer, batch_size = 10, training_batches = 10
 def test_loop(model, loss_fn, batch_size = 10, test_batches = 20):
     model.eval()
     test_loss = 0
+    jackard_index = 0
 
     for batch_number in range(test_batches):
-        images, masks = get_batch(batch_size)
+        images, masks = get_batch(gen_img_fct = get_image_with_random_shapes, batch_size = batch_size)
         images = torch.tensor(images, dtype=torch.float32)
         masks = torch.tensor(masks, dtype=torch.float32)
 
@@ -107,13 +110,20 @@ def test_loop(model, loss_fn, batch_size = 10, test_batches = 20):
             pred = model(images)
             test_loss += loss_fn(pred, masks).item()
 
+            jackard_index += iou(masks.detach().cpu().numpy(), pred.detach().cpu().numpy())
+
     test_loss /= test_batches
+    jackard_index /= test_batches
     print(f"Test loss: {test_loss:>8f} \n")
+    print(f"Jackard Index: {jackard_index:>8f} \n")
+
+    visualize_model_progress(model, get_image_with_random_shapes)
 
 
 # %%
 # running it
 loss_fn = nn.BCELoss()
+# loss_fn = get_weighted_bce_loss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
 epochs = 10
 
@@ -122,13 +132,15 @@ try:
         print(f"Epoch {t+1}\n-------------------------------")
         train_loop(model, loss_fn, optimizer)
         # testing for each epoch to track the models performance during training.
+        
         test_loop(model, loss_fn)
     print("Done!")
 except KeyboardInterrupt:
-     print("training interrupted by the user")
+    
+    print("training interrupted by the user")
 
 # %%
-visualize_model_progress(model)
+visualize_model_progress(model, get_image_fct=get_image_with_random_shapes)
 
 
 # %%

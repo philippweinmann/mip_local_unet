@@ -46,14 +46,14 @@ class UNet(nn.Module):
         self.down_convolution_1 = DownSample(in_channels, 64)  
         self.down_convolution_2 = DownSample(64, 128)  
         self.down_convolution_3 = DownSample(128, 256)  
-        self.down_convolution_4 = DownSample(256, 512)  
+        self.down_convolution_4 = DownSample(256, 512)
   
         self.bottle_neck = DoubleConv(512, 1024)
   
         self.up_convolution_1 = UpSample(1024, 512)  
         self.up_convolution_2 = UpSample(512, 256)
         self.up_convolution_3 = UpSample(256, 128)  
-        self.up_convolution_4 = UpSample(128, 64)  
+        self.up_convolution_4 = UpSample(128, 64)
   
         self.out = nn.Conv2d(in_channels=64, out_channels=num_classes, kernel_size=1)
   
