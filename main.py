@@ -10,7 +10,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import torch
 import torch.nn as nn
-from net_utils import get_weighted_bce_loss, iou, dice_loss, visualize_model_parameters
+from net_utils import get_weighted_bce_loss, iou, dice_loss, visualize_model_parameters, prepare_image_for_network_input
 import copy
 # %%
 # define which device is used for training
@@ -22,8 +22,10 @@ elif torch.backends.mps.is_available():
 else:
 	device = "cpu"
 
+# %%
 default_model = UNet
-default_image_generation_function = get_image_with_random_shape_small_mask
+# default_image_generation_function = get_image_with_random_shape_small_mask
+default_image_generation_function = get_image_with_random_shapes
 
 # model.to(device) # do this later if the model is defined later.
 torch.set_default_device(device)
@@ -172,14 +174,26 @@ try:
             patience = patience_base_value
         else:
             patience -= 1
-            print("patience: ", patience)
             if patience == 0:
                 break
+        print("patience: ", patience)
     print("Done!")
 except KeyboardInterrupt:
     print("training interrupted by the user")
+    model.eval()
 
 # %%
 for i in range(10):
     visualize_model_progress(model, get_image_fct=default_image_generation_function)
+# %%
+image, mask = default_image_generation_function()
+t_image = prepare_image_for_network_input(image)
+
+pred = model(t_image)
+np_pred = np.squeeze(pred.cpu().detach().numpy())
+plt.imshow(np_pred, cmap='gray')
+# %%
+np_pred.max()
+# %%
+image.max()
 # %%

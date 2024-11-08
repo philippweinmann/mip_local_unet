@@ -39,3 +39,9 @@ def visualize_model_parameters(model, batch_number):
             plt.ylabel("amount of elements in bin")
             plt.show()
             plt.pause(0.001)
+
+def prepare_image_for_network_input(image):
+    image = image[None, None, :, :]
+    t_image = torch.tensor(image, dtype=torch.float32)
+
+    return t_image
