@@ -114,7 +114,7 @@ def test_loop(model, loss_fn, batch_size = 10, test_batches = 5):
     jackard_index = 0
 
     for batch_number in range(test_batches):
-        images, masks = get_batch(gen_img_fct = get_image_with_random_shapes, batch_size = batch_size)
+        images, masks = get_batch(gen_img_fct = default_image_generation_function, batch_size = batch_size)
         images = torch.tensor(images, dtype=torch.float32)
         masks = torch.tensor(masks, dtype=torch.float32)
 

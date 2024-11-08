@@ -89,7 +89,7 @@ def get_image_with_random_shapes(width=x_dim, height=y_dim, circle_radius_max = 
 
 
 def get_image_with_random_shape_small_mask(width=x_dim, height=y_dim):
-    return get_image_with_random_shapes(x_dim, y_dim, circle_radius_max=10)
+    return get_image_with_random_shapes(x_dim, y_dim, circle_radius_max=5)
 
 
 def get_batch(gen_img_fct, batch_size: int):
