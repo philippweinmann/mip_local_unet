@@ -43,7 +43,7 @@ def get_image_with_random_shapes(width=x_dim, height=y_dim):
     mask = np.zeros(img_shape)
 
     center = (np.random.randint(0, width), np.random.randint(0, height))
-    radius = np.random.randint(2, 5)
+    radius = np.random.randint(50, 70)
     color = 1  # White color for the shape
     thickness = -1  # Fill the circle
     cv2.circle(image, center, radius, color, thickness)
@@ -51,6 +51,11 @@ def get_image_with_random_shapes(width=x_dim, height=y_dim):
     # the mask should have the circle as well
     cv2.circle(mask, center, radius, color, thickness)
 
+    top_left = (np.random.randint(0, width // 2), np.random.randint(0, height // 2))
+    bottom_right = (top_left[0] + 80, top_left[1] + 120)
+    cv2.rectangle(image, top_left, bottom_right, color, thickness)
+
+    '''
     # Randomly choose the number of shapes to draw
     num_shapes = np.random.randint(2, 6)
     
@@ -78,6 +83,7 @@ def get_image_with_random_shapes(width=x_dim, height=y_dim):
             start_point = (np.random.randint(0, width), np.random.randint(0, height))
             end_point = (np.random.randint(0, width), np.random.randint(0, height))
             cv2.line(image, start_point, end_point, color, thickness=np.random.randint(1,3))
+        '''
     
     return image, mask
 

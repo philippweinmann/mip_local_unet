@@ -8,7 +8,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import torch
 import torch.nn as nn
-from net_utils import get_weighted_bce_loss, iou
+from net_utils import get_weighted_bce_loss, iou, dice_loss
 # %%
 # define which device is used for training
 
@@ -68,7 +68,7 @@ def visualize_model_progress(model, get_image_fct):
 visualize_model_progress(model, get_image_fct=get_image_with_random_shapes)
 # %%
 # train loop
-def train_loop(model, loss_fn, optimizer, batch_size = 10, training_batches = 40):
+def train_loop(model, loss_fn, optimizer, batch_size = 10, training_batches = 20):
     # Set the model to training mode - important for batch normalization and  dropout layers
     # Unnecessary in this situation but added for best practices
     model.train()
@@ -96,7 +96,7 @@ def train_loop(model, loss_fn, optimizer, batch_size = 10, training_batches = 40
 
 # %%
 # test loop
-def test_loop(model, loss_fn, batch_size = 10, test_batches = 20):
+def test_loop(model, loss_fn, batch_size = 10, test_batches = 5):
     model.eval()
     test_loss = 0
     jackard_index = 0
@@ -118,14 +118,22 @@ def test_loop(model, loss_fn, batch_size = 10, test_batches = 20):
     print(f"Jackard Index: {jackard_index:>8f} \n")
 
     visualize_model_progress(model, get_image_with_random_shapes)
+    # to make sure that the plot gets displayed during training
+    plt.pause(0.001)
 
 
 # %%
+# resetting the model
+model = UNet(in_channels=1, num_classes=1)
+model.to(device)
+
+visualize_model_progress(model, get_image_with_random_shapes)
+
 # running it
+# loss_fn = get_weighted_bce_loss
 loss_fn = nn.BCELoss()
-# loss_fn = get_weighted_bce_loss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
-epochs = 10
+epochs = 20
 
 try:
     for t in range(epochs):
