@@ -2,7 +2,8 @@
 %load_ext autoreload
 %autoreload 2
 
-from generate import get_image_with_stripes, get_batch, get_image_with_random_shapes
+import sys
+from generate import get_image_with_stripes, get_batch, get_image_with_random_shapes, get_image_with_random_shape_small_mask
 from unet import UNet
 from simple_unet import SimpleUNet
 import numpy as np
@@ -21,6 +22,7 @@ else:
 	device = "cpu"
 
 default_model = UNet
+default_image_generation_function = get_image_with_random_shape_small_mask
 
 # model.to(device) # do this later if the model is defined later.
 torch.set_default_device(device)
@@ -45,7 +47,7 @@ def displayImageMaskTuple(image, mask, predicted_mask = None):
         ax[2].set_title('Predicted Mask')
 
 # image, mask = get_image_with_stripes()
-image, mask = get_image_with_random_shapes()
+image, mask = default_image_generation_function()
 displayImageMaskTuple(image, mask)
 # %%
 print(image.shape)
@@ -56,7 +58,7 @@ print(image.shape)
 model = default_model(in_channels=1, num_classes=1)
 model.to(device);
 # %%
-def visualize_model_progress(model, get_image_fct):
+def visualize_model_progress(model, get_image_fct = default_image_generation_function):
     original_img, original_mask = get_image_fct()
     image = original_img[None, None, :, :]
 
@@ -68,7 +70,7 @@ def visualize_model_progress(model, get_image_fct):
     displayImageMaskTuple(original_img, original_mask, pred_np)
 
 
-visualize_model_progress(model, get_image_fct=get_image_with_random_shapes)
+visualize_model_progress(model, get_image_fct=default_image_generation_function)
 # %%
 # train loop
 def train_loop(model, loss_fn, optimizer, batch_size = 10, training_batches = 20):
@@ -77,7 +79,7 @@ def train_loop(model, loss_fn, optimizer, batch_size = 10, training_batches = 20
     model.train()
     
     for batch_number in range(training_batches):
-        images, masks = get_batch(get_image_with_random_shapes, batch_size)
+        images, masks = get_batch(default_image_generation_function, batch_size)
         images = torch.tensor(images, dtype=torch.float32)
         masks = torch.tensor(masks, dtype=torch.float32)
 
@@ -98,9 +100,11 @@ def train_loop(model, loss_fn, optimizer, batch_size = 10, training_batches = 20
             pass
 
         if batch_number % 1 == 0:
-            loss = loss.item()
-            print(f"Jackard Index: {jackard_index:>8f} \n")
-            print(f"loss: {loss:>7f}  [{batch_number:>5d}/{training_batches:>5d}]")
+            train_loss = loss.item()
+
+            train_log = f"Train loss: {train_loss:>8f}  | Jackard Index: {jackard_index:>8f} \n"
+            sys.stdout.write('\r' + train_log)
+            sys.stdout.flush()
 
 # %%
 # test loop
@@ -122,10 +126,12 @@ def test_loop(model, loss_fn, batch_size = 10, test_batches = 5):
 
     test_loss /= test_batches
     jackard_index /= test_batches
-    print(f"Test loss: {test_loss:>8f}",end='\r')
-    print(f"Jackard Index: {jackard_index:>8f} \n")
 
-    visualize_model_progress(model, get_image_with_random_shapes)
+    test_log = f"Test loss: {test_loss:>8f}  | Jackard Index: {jackard_index:>8f} \n"
+    sys.stdout.write('\r' + test_log)
+    sys.stdout.flush()
+
+    visualize_model_progress(model, default_image_generation_function)
     # to make sure that the plot gets displayed during training
     plt.pause(0.001)
 
@@ -135,7 +141,7 @@ def test_loop(model, loss_fn, batch_size = 10, test_batches = 5):
 model = default_model(in_channels=1, num_classes=1)
 model.to(device)
 
-visualize_model_progress(model, get_image_with_random_shapes)
+visualize_model_progress(model, default_image_generation_function)
 
 # running it
 # loss_fn = get_weighted_bce_loss
@@ -155,5 +161,5 @@ except KeyboardInterrupt:
     print("training interrupted by the user")
 
 # %%
-visualize_model_progress(model, get_image_fct=get_image_with_random_shapes)
+visualize_model_progress(model, get_image_fct=default_image_generation_function)
 # %%

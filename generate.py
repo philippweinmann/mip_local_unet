@@ -38,12 +38,12 @@ def get_image_with_stripes():
     # as expected (dice loss)
     return image, mask
 
-def get_image_with_random_shapes(width=x_dim, height=y_dim):
+def get_image_with_random_shapes(width=x_dim, height=y_dim, circle_radius_max = 70):
     image = np.zeros(img_shape)
     mask = np.zeros(img_shape)
 
     center = (np.random.randint(0, width), np.random.randint(0, height))
-    radius = np.random.randint(50, 70)
+    radius = np.random.randint(circle_radius_max // 2, circle_radius_max)
     color = 1  # White color for the shape
     thickness = -1  # Fill the circle
     cv2.circle(image, center, radius, color, thickness)
@@ -88,8 +88,8 @@ def get_image_with_random_shapes(width=x_dim, height=y_dim):
     return image, mask
 
 
-
-
+def get_image_with_random_shape_small_mask(width=x_dim, height=y_dim):
+    return get_image_with_random_shapes(x_dim, y_dim, circle_radius_max=10)
 
 
 def get_batch(gen_img_fct, batch_size: int):
