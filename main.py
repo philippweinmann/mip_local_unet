@@ -11,6 +11,7 @@ from matplotlib import pyplot as plt
 import torch
 import torch.nn as nn
 from net_utils import get_weighted_bce_loss, iou, dice_loss, visualize_model_parameters
+import copy
 # %%
 # define which device is used for training
 
@@ -135,6 +136,8 @@ def test_loop(model, loss_fn, batch_size = 10, test_batches = 5):
     # to make sure that the plot gets displayed during training
     plt.pause(0.001)
 
+    return test_loss
+
 
 # %%
 # resetting the model
@@ -144,10 +147,16 @@ model.to(device)
 visualize_model_progress(model, default_image_generation_function)
 
 # running it
+# param initialization for patience
+best_loss = float('inf')  
+best_model_weights = None  
+patience_base_value = 3
+patience = patience_base_value
+
 # loss_fn = get_weighted_bce_loss
 loss_fn = nn.BCELoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
-epochs = 50
+epochs = 200
 
 try:
     for t in range(epochs):
@@ -155,11 +164,22 @@ try:
         train_loop(model, loss_fn, optimizer)
         # testing for each epoch to track the models performance during training.
         
-        test_loop(model, loss_fn)
+        test_loss = test_loop(model, loss_fn)
+
+        if test_loss < best_loss:
+            best_loss = test_loss
+            best_model_weights = copy.deepcopy(model.state_dict())
+            patience = patience_base_value
+        else:
+            patience -= 1
+            print("patience: ", patience)
+            if patience == 0:
+                break
     print("Done!")
 except KeyboardInterrupt:
     print("training interrupted by the user")
 
 # %%
-visualize_model_progress(model, get_image_fct=default_image_generation_function)
+for i in range(10):
+    visualize_model_progress(model, get_image_fct=default_image_generation_function)
 # %%
