@@ -43,7 +43,7 @@ class UpSample(nn.Module):
 class UNet(nn.Module):
     def __init__(self, in_channels, num_classes):  
         super().__init__()
-        first_out_channels = 4
+        first_out_channels = 16
         self.down_convolution_1 = DownSample(in_channels, first_out_channels)  
         self.down_convolution_2 = DownSample(first_out_channels, first_out_channels * 2)  
         self.down_convolution_3 = DownSample(first_out_channels * 2, first_out_channels * 2 * 2)  

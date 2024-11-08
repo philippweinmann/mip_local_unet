@@ -1,5 +1,6 @@
 import torch
 import numpy as np
+from matplotlib import pyplot as plt
 
 def get_weighted_bce_loss(pred, mask):
     # the positive class (mask == 1) has a much higher weight if missed.
@@ -25,3 +26,16 @@ def dice_loss(pred, target, smooth=1.0):
                 (pred.sum(dim=2).sum(dim=2) + target.sum(dim=2).sum(dim=2) + smooth))
     
     return loss.mean()
+
+def visualize_model_parameters(model, batch_number):
+    for tag, parm in model.named_parameters():
+        if parm.grad is not None:
+            parm_grad = parm.grad.cpu().numpy().flatten()
+            # print(tag)
+            # print(parm_grad)
+            plt.hist(parm_grad, bins=10)
+            plt.title(tag + " gradient, batch number = " + str(batch_number))
+            plt.xlabel("bin means")
+            plt.ylabel("amount of elements in bin")
+            plt.show()
+            plt.pause(0.001)

@@ -4,11 +4,12 @@
 
 from generate import get_image_with_stripes, get_batch, get_image_with_random_shapes
 from unet import UNet
+from simple_unet import SimpleUNet
 import numpy as np
 from matplotlib import pyplot as plt
 import torch
 import torch.nn as nn
-from net_utils import get_weighted_bce_loss, iou, dice_loss
+from net_utils import get_weighted_bce_loss, iou, dice_loss, visualize_model_parameters
 # %%
 # define which device is used for training
 
@@ -18,6 +19,8 @@ elif torch.backends.mps.is_available():
 	device = "mps"
 else:
 	device = "cpu"
+
+default_model = UNet
 
 # model.to(device) # do this later if the model is defined later.
 torch.set_default_device(device)
@@ -50,7 +53,7 @@ image = image[None, None, :, :]
 print(image.shape)
 
 # %%
-model = UNet(in_channels=1, num_classes=1)
+model = default_model(in_channels=1, num_classes=1)
 model.to(device);
 # %%
 def visualize_model_progress(model, get_image_fct):
@@ -88,7 +91,12 @@ def train_loop(model, loss_fn, optimizer, batch_size = 10, training_batches = 20
         # Backpropagation
         loss.backward()
         optimizer.step()
-        
+
+        # Let#s visualize the gradients to detect potential issues here
+        if batch_number % 10 == 0:
+            # visualize_model_parameters(model, batch_number)
+            pass
+
         if batch_number % 1 == 0:
             loss = loss.item()
             print(f"Jackard Index: {jackard_index:>8f} \n")
@@ -114,7 +122,7 @@ def test_loop(model, loss_fn, batch_size = 10, test_batches = 5):
 
     test_loss /= test_batches
     jackard_index /= test_batches
-    print(f"Test loss: {test_loss:>8f} \n")
+    print(f"Test loss: {test_loss:>8f}",end='\r')
     print(f"Jackard Index: {jackard_index:>8f} \n")
 
     visualize_model_progress(model, get_image_with_random_shapes)
@@ -124,7 +132,7 @@ def test_loop(model, loss_fn, batch_size = 10, test_batches = 5):
 
 # %%
 # resetting the model
-model = UNet(in_channels=1, num_classes=1)
+model = default_model(in_channels=1, num_classes=1)
 model.to(device)
 
 visualize_model_progress(model, get_image_with_random_shapes)
@@ -133,7 +141,7 @@ visualize_model_progress(model, get_image_with_random_shapes)
 # loss_fn = get_weighted_bce_loss
 loss_fn = nn.BCELoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
-epochs = 20
+epochs = 50
 
 try:
     for t in range(epochs):
@@ -144,11 +152,8 @@ try:
         test_loop(model, loss_fn)
     print("Done!")
 except KeyboardInterrupt:
-    
     print("training interrupted by the user")
 
 # %%
 visualize_model_progress(model, get_image_fct=get_image_with_random_shapes)
-
-
 # %%
