@@ -4,15 +4,14 @@
 import numpy as np
 import cv2
 
-# %%
-ccta_scans_dims = 512
-ccta_scans_slices = 275
+from config import ccta_scans_dims, ccta_scans_slices
 
+# %%
 simplified_dims = ccta_scans_dims // 2# for faster execution
 x_dim = simplified_dims
 y_dim = simplified_dims  # 256 x 256 images
 
-img_shape = (x_dim, y_dim)
+img_shape = (y_dim, x_dim)
 
 
 # %%

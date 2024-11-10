@@ -6,7 +6,7 @@ import copy
 import torch
 import torch.nn as nn
 
-from generate import get_batch, get_image_with_random_shapes
+from data_generation.generate import get_batch, get_image_with_random_shapes
 
 from matplotlib import pyplot as plt
 from models.net_visualizations import visualize_model_progress, displayImageMaskTuple
