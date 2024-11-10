@@ -4,13 +4,13 @@
 
 import sys
 from generate import get_image_with_stripes, get_batch, get_image_with_random_shapes, get_image_with_random_shape_small_mask
-from unet import UNet
-from simple_unet import SimpleUNet
+from models.unet import UNet
+from models.simple_unet import SimpleUNet
 import numpy as np
 from matplotlib import pyplot as plt
 import torch
 import torch.nn as nn
-from net_utils import get_weighted_bce_loss, iou, dice_loss, visualize_model_parameters
+from models.net_utils import get_weighted_bce_loss, iou, dice_loss, visualize_model_parameters
 # %%
 # define which device is used for training
 
