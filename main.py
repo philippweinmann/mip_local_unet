@@ -48,8 +48,11 @@ visualize_model_progress(model, get_image_fct=default_image_generation_function)
 # %%
 print("----------------TRAINING-------------")
 def calculate_jaccard_score(masks, images):
-    masks = masks.detach().cpu().numpy()
-    images = images.detach().cpu().numpy()
+    try:
+        masks = masks.detach().cpu().numpy()
+        images = images.detach().cpu().numpy()
+    except:
+        pass
 
     masks = binarize_image_pp(masks)
     images = binarize_image_pp(images)
@@ -155,5 +158,7 @@ except KeyboardInterrupt:
 # %%
 print("------INFERENCE--------")
 for i in range(10):
-    visualize_model_progress(model, get_image_fct=default_image_generation_function)
+    mask, pred = visualize_model_progress(model, get_image_fct=default_image_generation_function)
+    print("jaccard score for above image: ", calculate_jaccard_score(mask, pred))
+
 # %%

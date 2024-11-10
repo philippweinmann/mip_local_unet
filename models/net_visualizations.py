@@ -34,6 +34,8 @@ def displayImageMaskTuple(image, mask, predicted_mask = None):
     if predicted_mask is not None:
         ax[2].imshow(predicted_mask, cmap='gray')
         ax[2].set_title('Predicted Mask')
+    
+    plt.pause(0.001)
 
 
 def visualize_model_progress(model, get_image_fct):
@@ -43,5 +45,6 @@ def visualize_model_progress(model, get_image_fct):
 
     displayImageMaskTuple(original_img, original_mask, prepare_image_for_analysis(pred))
 
+    return original_mask, prepare_image_for_analysis(pred)
 
 # %%
