@@ -4,7 +4,7 @@
 import numpy as np
 import cv2
 
-from config import ccta_scans_dims, ccta_scans_slices
+from data_generation.config import ccta_scans_dims, ccta_scans_slices
 
 # %%
 simplified_dims = ccta_scans_dims // 2# for faster execution
