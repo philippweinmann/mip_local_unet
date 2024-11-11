@@ -11,12 +11,11 @@ from data_generation.generate_3d import get_3DImage
 from data_generation.generate_utils import get_batch
 
 from matplotlib import pyplot as plt
+from models.net_utils import calculate_jaccard_score, calculate_dice_score, calculate_hausdorff_distance
 from models.net_visualizations import two_d_visualize_model_progress, three_d_visualize_model_progress, display2DImageMaskTuple, display3DImageMaskTuple
 
 from models.unet2D import UNet
 from models.unet3D import UNet3D
-from models.net_utils import binarize_image_pp
-from sklearn.metrics import jaccard_score
 # %%
 # define which device is used for training
 
@@ -72,18 +71,8 @@ print("model prediction at initialization: ")
 default_model_progress_visualization_function(model, get_image_fct=default_image_generation_function);
 # %%
 print("----------------TRAINING-------------")
-def calculate_jaccard_score(masks, images):
-    try:
-        masks = masks.detach().cpu().numpy()
-        images = images.detach().cpu().numpy()
-    except:
-        pass
 
-    masks = binarize_image_pp(masks)
-    images = binarize_image_pp(images)
-
-    jaccard_scr = jaccard_score(masks.flatten(), images.flatten())
-    return jaccard_scr
+additional_score_tuples = [("jaccard score", calculate_jaccard_score), ("dice score", calculate_dice_score)] # ("hausdorff distance", calculate_hausdorff_distance)
 
 def train_loop(model, loss_fn, optimizer, batch_size = 10, training_batches = 20):
     model.train()
@@ -97,14 +86,23 @@ def train_loop(model, loss_fn, optimizer, batch_size = 10, training_batches = 20
 
         pred = model(images)
         loss = loss_fn(pred, masks)
-        jaccard_score = calculate_jaccard_score(masks, images)
+        
+        additional_metrics = []
+        
+        for name, additional_score_function in additional_score_tuples:
+            score = additional_score_function(masks, images)
+            additional_metrics.append((name, score))
 
         loss.backward()
         optimizer.step()
 
         train_loss = loss.item()
 
-        print(f"Train loss: {train_loss:>8f} | Jaccard Score: {jaccard_score:>8f}", end="\r")
+        train_log = f"Train loss: {train_loss:>8f}"
+        for name, score in additional_metrics:
+            train_log = train_log + f" | {name}: {score}"
+
+        print(train_log, end="\r")
 
 # %%
 def test_loop(model, loss_fn, batch_size = 10, test_batches = 5):
@@ -112,6 +110,7 @@ def test_loop(model, loss_fn, batch_size = 10, test_batches = 5):
 
     test_loss = 0
     jaccard_score = 0
+    dice_score = 0
 
     for _ in range(test_batches):
         images, masks = get_batch(gen_img_fct = default_image_generation_function, batch_size = batch_size)
@@ -123,12 +122,14 @@ def test_loop(model, loss_fn, batch_size = 10, test_batches = 5):
             test_loss += loss_fn(pred, masks).item()
 
             jaccard_score += calculate_jaccard_score(masks, images)
+            dice_score += calculate_dice_score(masks, images)
 
 
     test_loss /= test_batches
     jaccard_score /= test_batches
+    dice_score /= test_batches
 
-    print(f"Test loss: {test_loss:>8f}  | Jackard Index: {jaccard_score:>8f} \n", end="\r")
+    print(f"Test loss: {test_loss:>8f}  | Jaccard Score: {jaccard_score:>8f} | Dice Score: {dice_score:>8f}\n", end="\r")
 
     default_model_progress_visualization_function(model, default_image_generation_function)
     

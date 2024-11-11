@@ -1,3 +1,7 @@
+from sklearn.metrics import jaccard_score
+from sklearn.metrics import f1_score # this is the dice score
+from scipy.spatial.distance import directed_hausdorff
+
 import torch
 import numpy as np
 
@@ -35,3 +39,46 @@ def binarize_image_pp(image):
     '''The network outputs a binary probability. For the final result and some metrics, like the jackard score, we need to decide if the value is 1 or 0.'''
     binary_image = np.where(image > 0.5, 1, 0)
     return binary_image
+
+def get_binary_data(masks, images):
+    try:
+        masks = masks.detach().cpu().numpy()
+        images = images.detach().cpu().numpy()
+    except:
+        pass
+
+    masks = binarize_image_pp(masks)
+    images = binarize_image_pp(images)
+
+    return masks, images
+
+def calculate_score(masks, images, score_fct):
+    masks, images = get_binary_data(masks, images)
+
+    score = score_fct(masks.flatten(), images.flatten())
+    return score
+
+def calculate_jaccard_score(masks, images):
+    '''
+    0: no overlap
+    1: perfect overlap
+    '''
+    return calculate_score(masks, images, score_fct=jaccard_score)
+
+def calculate_dice_score(masks, images):
+    '''
+    0: no overlap
+    1: perfect overlap
+    '''
+    return calculate_score(masks, images, score_fct=f1_score)
+
+def calculate_hausdorff_distance(masks, images):
+    '''
+    0: no overlap
+    1: perfect overlap
+    '''
+    # todo fix for 3d data
+    masks, images = get_binary_data(masks, images)
+
+    score = directed_hausdorff(masks, images)
+    return score
