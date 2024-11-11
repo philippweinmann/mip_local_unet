@@ -12,8 +12,6 @@ x_dim = simplified_dims
 y_dim = simplified_dims  # 256 x 256 images
 
 img_shape = (y_dim, x_dim)
-
-
 # %%
 # This doesn't work, because the Unet does not have any spatial information. 
 # It won't be able to know where the stripes are.
@@ -93,15 +91,4 @@ def get_image_with_random_shapes(width=x_dim, height=y_dim, circle_radius_max = 
 
 def get_image_with_random_shape_small_mask(width=x_dim, height=y_dim):
     return get_image_with_random_shapes(width, height, circle_radius_max=5)
-
-
-def get_batch(gen_img_fct, batch_size: int):
-    images = []
-    masks = []
-    for _ in range(batch_size):
-        image, mask = gen_img_fct()
-        images.append(image[None, :, :])
-        masks.append(mask[None, :, :])
-
-    return np.array(images), np.array(masks)
 # %%

@@ -1,5 +1,5 @@
 from matplotlib import pyplot as plt
-
+import numpy as np
 from models.net_utils import prepare_image_for_network_input, prepare_image_for_analysis
 
 
@@ -18,7 +18,7 @@ def visualize_model_parameters(model, batch_number):
 
 
 # %%
-def displayImageMaskTuple(image, mask, predicted_mask = None):
+def display2DImageMaskTuple(image, mask, predicted_mask = None):
     if predicted_mask is not None:
         amt_subplots = 3
     else:
@@ -37,14 +37,55 @@ def displayImageMaskTuple(image, mask, predicted_mask = None):
     
     plt.pause(0.001)
 
+def display3DImageMaskTuple(image, mask, predicted_mask = None):
+    images_to_plot = [image, mask]
+    titles = ["image", "mask"]
 
-def visualize_model_progress(model, get_image_fct):
+    if predicted_mask is not None:
+        images_to_plot.append(predicted_mask)
+        titles.append("predicted mask")
+
+    fig = plt.figure(figsize=(10, 10))
+
+    for plt_idx, (image, title) in enumerate(zip(images_to_plot, titles)):
+        x, y, z = np.where(image >= 0.5)
+        
+        ax = fig.add_subplot(1, 3, plt_idx + 1, projection='3d')
+
+        # Plot the '1's in the image
+        ax.scatter(x, y, z, c='red', marker='o')
+
+        # Set labels and show the plot
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('Z')
+
+        ax.set_xlim([0, image.shape[0]])
+        ax.set_ylim([0, image.shape[1]])
+        ax.set_zlim([0, image.shape[2]])
+        
+        ax.set_title(title)
+
+    plt.tight_layout()
+    plt.show()
+    plt.pause(0.001)
+
+
+def two_d_visualize_model_progress(model, get_image_fct):
     original_img, original_mask = get_image_fct()
 
     pred = model(prepare_image_for_network_input(original_img))
 
-    displayImageMaskTuple(original_img, original_mask, prepare_image_for_analysis(pred))
+    display2DImageMaskTuple(original_img, original_mask, prepare_image_for_analysis(pred))
 
     return original_mask, prepare_image_for_analysis(pred)
 
 # %%
+def three_d_visualize_model_progress(model, get_image_fct):
+    original_img, original_mask = get_image_fct()
+
+    pred = model(prepare_image_for_network_input(original_img))
+
+    display3DImageMaskTuple(original_img, original_mask, prepare_image_for_analysis(pred))
+
+    return original_mask, prepare_image_for_analysis(pred)

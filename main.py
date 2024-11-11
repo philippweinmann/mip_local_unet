@@ -6,45 +6,70 @@ import copy
 import torch
 import torch.nn as nn
 
-from data_generation.generate import get_batch, get_image_with_random_shapes
+from data_generation.generate_2d import get_image_with_random_shapes
+from data_generation.generate_3d import get_3DImage
+from data_generation.generate_utils import get_batch
 
 from matplotlib import pyplot as plt
-from models.net_visualizations import visualize_model_progress, displayImageMaskTuple
+from models.net_visualizations import two_d_visualize_model_progress, three_d_visualize_model_progress, display2DImageMaskTuple, display3DImageMaskTuple
 
-from models.unet import UNet
+from models.unet2D import UNet
+from models.unet3D import UNet3D
 from models.net_utils import binarize_image_pp
 from sklearn.metrics import jaccard_score
 # %%
 # define which device is used for training
 
-if torch.cuda.is_available():
-	device = "cuda"
-elif torch.backends.mps.is_available():
-	device = "mps"
+ThreeDimensions = True
+
+def get_best_device():
+    if torch.cuda.is_available():
+        device = "cuda"
+    elif torch.backends.mps.is_available():
+        device = "mps"
+    else:
+        device = "cpu"
+
+    return device
+
+if ThreeDimensions:
+    device = "cpu"
 else:
-	device = "cpu"
+    device = get_best_device()
 
 torch.set_default_device(device)
-
 print(f"Using {device} device. Every tensor created will be by default on {device}")
-
 # %%
-default_model = UNet
+
+
+if ThreeDimensions:
+    print("setting default functions for three dimensions")
+    default_model = UNet3D
+
+    default_image_generation_function = get_3DImage
+    default_image_mask_visulization_function = display3DImageMaskTuple
+    default_model_progress_visualization_function = three_d_visualize_model_progress
+else:
+    print("setting default functions for two dimensions")
+    default_model = UNet
+
+    default_image_generation_function = get_image_with_random_shapes
+    default_image_mask_visulization_function = display2DImageMaskTuple
+    default_model_progress_visualization_function = two_d_visualize_model_progress
+
 model = default_model(in_channels=1, num_classes=1)
 model.to(device);
-
-default_image_generation_function = get_image_with_random_shapes
 
 # %%
 image, mask = default_image_generation_function()
 print("image_shape: ", image.shape)
 
 # %%
-displayImageMaskTuple(image, mask)
+default_image_mask_visulization_function(image, mask)
 # %%
 print("model prediction at initialization: ")
 
-visualize_model_progress(model, get_image_fct=default_image_generation_function);
+default_model_progress_visualization_function(model, get_image_fct=default_image_generation_function);
 # %%
 print("----------------TRAINING-------------")
 def calculate_jaccard_score(masks, images):
@@ -105,7 +130,7 @@ def test_loop(model, loss_fn, batch_size = 10, test_batches = 5):
 
     print(f"Test loss: {test_loss:>8f}  | Jackard Index: {jaccard_score:>8f} \n", end="\r")
 
-    visualize_model_progress(model, default_image_generation_function)
+    default_model_progress_visualization_function(model, default_image_generation_function)
     
     # to make sure that the plot gets displayed during training
     plt.pause(0.001)
@@ -120,7 +145,7 @@ model = default_model(in_channels=1, num_classes=1)
 model.to(device)
 
 print("model prediction at initialization: ")
-visualize_model_progress(model, default_image_generation_function)
+default_model_progress_visualization_function(model, default_image_generation_function)
 
 # running it
 # param initialization for patience
@@ -158,7 +183,7 @@ except KeyboardInterrupt:
 # %%
 print("------INFERENCE--------")
 for i in range(10):
-    mask, pred = visualize_model_progress(model, get_image_fct=default_image_generation_function)
+    mask, pred = default_model_progress_visualization_function(model, get_image_fct=default_image_generation_function)
     print("jaccard score for above image: ", calculate_jaccard_score(mask, pred))
 
 # %%

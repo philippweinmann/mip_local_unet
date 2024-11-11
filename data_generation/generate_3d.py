@@ -3,18 +3,17 @@
 
 import numpy as np
 from matplotlib import pyplot as plt
-from config import ccta_scans_dims, ccta_scans_slices
+from data_generation.config import ccta_scans_dims, ccta_scans_slices
 
 # %%
-simplified_xy_dims = ccta_scans_dims // 2# for faster execution
-simplified_slices = 20
+simplified_xy_dims = ccta_scans_dims // 16 # for faster execution
+simplified_slices = simplified_xy_dims # the Unet requires a cube
 x_dim = simplified_xy_dims
 y_dim = simplified_xy_dims  # 256 x 256 images
 
 img_shape = (simplified_slices, y_dim, x_dim)
-print(img_shape)
+# print(img_shape)
 # %%
-ThreeDimage = np.zeros(img_shape)
 # let's visualize it
 # Get the indices of the '1's in the image
 def visualize3Dimage(image):
@@ -40,15 +39,13 @@ def visualize3Dimage(image):
     ax.set_zlim([0, image.shape[2]])
     
     plt.show()
-
-visualize3Dimage(ThreeDimage)
 # %%
 # let's start really simple. We create a tube and a cube
 # first the cube
-print("shape of the image: ", ThreeDimage.shape)
+# print("shape of the image: ", ThreeDimage.shape)
 
 # let's reset the 3d image
-ThreeDimage = np.zeros(img_shape)
+# ThreeDimage = np.zeros(img_shape)
 
 # cube positions
 def add_cube(image):
@@ -61,15 +58,15 @@ def add_cube(image):
     right_x = left_x + 10
     top_y = bottom_y + 5
 
-    print("left_x: ", left_x, " right_x: ", right_x, " bottom_y: ", bottom_y, " top_y: ", top_y)
+    # print("left_x: ", left_x, " right_x: ", right_x, " bottom_y: ", bottom_y, " top_y: ", top_y)
     # let's just assume the cube goes through everything
     image[:,bottom_y:top_y, left_x:right_x] = 1
 
     return image
 
-ThreeDimage = add_cube(ThreeDimage)
+# ThreeDimage = add_cube(ThreeDimage)
 
-visualize3Dimage(ThreeDimage)
+# visualize3Dimage(ThreeDimage)
 # %%
 def add_tube(image, mask):
     z_dim = image.shape[0]
@@ -91,8 +88,24 @@ def add_tube(image, mask):
     mask[:,circle_mask] = 1
 
     return image, mask
-
-ThreeDimage, threeimage_mask = add_tube(ThreeDimage, mask=ThreeDimage)
-visualize3Dimage(ThreeDimage)
-visualize3Dimage(threeimage_mask)
 # %%
+
+def get_3DImage():
+    image = np.zeros(img_shape)
+    mask = np.zeros(img_shape)
+
+    image = add_cube(image)
+    # tube gets added to both the image and mask
+    image, mask = add_tube(image, mask)
+
+    return image, mask
+
+def get_batch(gen_img_fct, batch_size: int):
+    images = []
+    masks = []
+    for _ in range(batch_size):
+        image, mask = gen_img_fct()
+        images.append(image[None, :, :])
+        masks.append(mask[None, :, :])
+
+    return np.array(images), np.array(masks)
