@@ -51,13 +51,48 @@ print("shape of the image: ", ThreeDimage.shape)
 ThreeDimage = np.zeros(img_shape)
 
 # cube positions
-left_x = np.random.randint(0, simplified_xy_dims // 2)
-bottom_y = np.random.randint(0, simplified_xy_dims // 2)
-right_x = left_x + 10
-top_y = bottom_y + 5
+def add_cube(image):
+    z_dim = image.shape[0]
+    y_dim = image.shape[1]
+    x_dim = image.shape[2]
 
-print("left_x: ", left_x, " right_x: ", right_x, " bottom_y: ", bottom_y, " top_y: ", top_y)
-# let's just assume the cube goes through everything
-ThreeDimage[:,bottom_y:top_y, left_x:right_x] = 1
+    left_x = np.random.randint(0, x_dim // 2)
+    bottom_y = np.random.randint(0, y_dim // 2)
+    right_x = left_x + 10
+    top_y = bottom_y + 5
+
+    print("left_x: ", left_x, " right_x: ", right_x, " bottom_y: ", bottom_y, " top_y: ", top_y)
+    # let's just assume the cube goes through everything
+    image[:,bottom_y:top_y, left_x:right_x] = 1
+
+    return image
+
+ThreeDimage = add_cube(ThreeDimage)
+
 visualize3Dimage(ThreeDimage)
+# %%
+def add_tube(image, mask):
+    z_dim = image.shape[0]
+    y_dim = image.shape[1]
+    x_dim = image.shape[2]
+
+    x_center = np.random.randint(0, x_dim)
+    y_center = np.random.randint(0, y_dim)
+
+    # circle_center = (y_center, x_center)
+    radius = 20
+
+    # let's create a grid of x and y coordinates
+    y, x = np.ogrid[0:y_dim, 0:x_dim]
+    distance_from_center = (y - y_center) ** 2 + (x - x_center) ** 2
+    circle_mask = distance_from_center <= radius * 2
+
+    image[:,circle_mask] = 1
+    mask[:,circle_mask] = 1
+
+    return image, mask
+
+ThreeDimage, threeimage_mask = add_tube(ThreeDimage, mask=ThreeDimage)
+visualize3Dimage(ThreeDimage)
+visualize3Dimage(threeimage_mask)
 # %%

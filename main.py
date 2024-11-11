@@ -44,7 +44,7 @@ displayImageMaskTuple(image, mask)
 # %%
 print("model prediction at initialization: ")
 
-visualize_model_progress(model, get_image_fct=default_image_generation_function)
+visualize_model_progress(model, get_image_fct=default_image_generation_function);
 # %%
 print("----------------TRAINING-------------")
 def calculate_jaccard_score(masks, images):

@@ -104,3 +104,4 @@ def get_batch(gen_img_fct, batch_size: int):
         masks.append(mask[None, :, :])
 
     return np.array(images), np.array(masks)
+# %%
