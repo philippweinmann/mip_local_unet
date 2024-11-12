@@ -1,8 +1,11 @@
 # %%
 import torch.nn as nn
 import torch
+import torch.nn.functional as F
 
 import os
+
+from typing import Optional
 
 # Set the environment variable
 os.environ['PYTORCH_ENABLE_MPS_FALLBACK'] = '1' # maxpool3d is not implemented for MPS
@@ -86,3 +89,57 @@ class UNet3D(nn.Module):
         out = torch.sigmoid(out)
         return out
     
+# -------Loss-Functions----------
+def softdiceloss(predictions, targets, smooth: float = 0.00001):
+    batch_size = targets.shape[0]
+    intersection = (predictions * targets).view(batch_size, -1).sum(-1)
+
+    targets_area = targets.view(batch_size, -1).sum(-1)
+    predictions_area = predictions.view(batch_size, -1).sum(-1)
+
+    dice = (2. * intersection + smooth) / (predictions_area + targets_area + smooth)
+
+    return 1 - dice.mean()
+
+# reference implementation
+class SoftDice(nn.Module):
+    def __init__(self):
+        """Dice coefficient."""
+        super().__init__()
+
+    def forward(self, inputs: torch.Tensor, targets: torch.Tensor,
+                weights: Optional[torch.Tensor] = None, smooth: float = 0):
+        # Binarize prediction
+        inputs = torch.where(inputs < self.thresh, 0, 1)
+        batch_size = targets.shape[0]
+
+        intersection = torch.logical_and(inputs, targets)
+        intersection = intersection.view(batch_size, -1).sum(-1)
+        targets_area = targets.view(batch_size, -1).sum(-1)
+        inputs_area = inputs.view(batch_size, -1).sum(-1)
+        dice = (2. * intersection + smooth) / (inputs_area + targets_area + smooth)
+
+        if weights is not None:
+            assert weights.shape == dice.shape, \
+                f'"weights" must be in shape of "{dice.shape}"'
+            return (dice * weights).sum()
+
+        return dice.mean()
+
+
+class DiceBCELoss(nn.Module):
+    def __init__(self):
+        """Dice loss + binary cross-entropy loss."""
+        super().__init__()
+        self.softdiceloss_fn = softdiceloss
+        self.__name__ = 'DiceBCELoss'
+
+    def forward(self, predictions: torch.Tensor, targets: torch.Tensor):
+        batch_size = predictions.shape[0]
+
+        bce = F.binary_cross_entropy(predictions, targets, reduction='mean')
+        bce = bce.reshape(batch_size, -1).mean(-1)
+
+        dice_loss = 1 - self.softdiceloss_fn(predictions, targets)
+        dice_bce = bce + dice_loss
+        return dice_bce

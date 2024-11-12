@@ -15,7 +15,7 @@ from models.net_utils import calculate_jaccard_score, calculate_dice_score, calc
 from models.net_visualizations import two_d_visualize_model_progress, three_d_visualize_model_progress, display2DImageMaskTuple, display3DImageMaskTuple
 
 from models.unet2D import UNet
-from models.unet3D import UNet3D
+from models.unet3D import UNet3D, softdiceloss, DiceBCELoss
 # %%
 # define which device is used for training
 
@@ -32,7 +32,7 @@ def get_best_device():
     return device
 
 if ThreeDimensions:
-    device = "cpu"
+    device = "cpu" # call the get_best_device() fct on devices with gpus
 else:
     device = get_best_device()
 
@@ -48,6 +48,7 @@ if ThreeDimensions:
     default_image_generation_function = get_3DImage
     default_image_mask_visulization_function = display3DImageMaskTuple
     default_model_progress_visualization_function = three_d_visualize_model_progress
+    default_loss_fn = softdiceloss
 else:
     print("setting default functions for two dimensions")
     default_model = UNet
@@ -55,10 +56,10 @@ else:
     default_image_generation_function = get_image_with_random_shapes
     default_image_mask_visulization_function = display2DImageMaskTuple
     default_model_progress_visualization_function = two_d_visualize_model_progress
+    default_loss_fn = nn.BCELoss
 
 model = default_model(in_channels=1, num_classes=1)
 model.to(device);
-
 # %%
 image, mask = default_image_generation_function()
 print("image_shape: ", image.shape)
@@ -155,7 +156,8 @@ best_model_weights = None
 patience_base_value = 3
 patience = patience_base_value
 
-loss_fn = nn.BCELoss()
+# loss_fn = nn.BCELoss()
+loss_fn = default_loss_fn
 optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
 epochs = 200
 
