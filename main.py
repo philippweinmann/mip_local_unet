@@ -12,6 +12,7 @@ from data_generation.generate_utils import get_batch
 
 from matplotlib import pyplot as plt
 from models.net_utils import calculate_jaccard_score, calculate_dice_score, calculate_hausdorff_distance
+from models.net_utils import get_best_device
 from models.net_visualizations import two_d_visualize_model_progress, three_d_visualize_model_progress, display2DImageMaskTuple, display3DImageMaskTuple
 
 from models.unet2D import UNet
@@ -21,20 +22,10 @@ from models.unet3D import UNet3D, softdiceloss, dice_bce_loss
 
 ThreeDimensions = True
 
-def get_best_device():
-    if torch.cuda.is_available():
-        device = "cuda"
-    elif torch.backends.mps.is_available():
-        device = "mps"
-    else:
-        device = "cpu"
+device = get_best_device()
 
-    return device
-
-if ThreeDimensions:
-    device = "cpu" # call the get_best_device() fct on devices with gpus
-else:
-    device = get_best_device()
+if ThreeDimensions & (device == "mps"):
+    device = "cpu"
 
 torch.set_default_device(device)
 print(f"Using {device} device. Every tensor created will be by default on {device}")
