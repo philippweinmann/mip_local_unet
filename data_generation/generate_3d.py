@@ -11,13 +11,6 @@ simplified_slices = simplified_xy_dims # the Unet requires a cube
 x_dim = simplified_xy_dims
 y_dim = simplified_xy_dims  # 256 x 256 images
 
-
-'''
-simplified_xy_dims = 256
-simplified_slices = 275
-x_dim = simplified_xy_dims
-y_dim = simplified_xy_dims
-'''
 img_shape = (simplified_slices, y_dim, x_dim)
 # print(img_shape)
 # %%
@@ -70,20 +63,16 @@ def add_cube(image):
     image[:,bottom_y:top_y, left_x:right_x] = 1
 
     return image
-
-# ThreeDimage = add_cube(ThreeDimage)
-
-# visualize3Dimage(ThreeDimage)
 # %%
 def add_tube(image, mask):
     z_dim = image.shape[0]
     y_dim = image.shape[1]
     x_dim = image.shape[2]
 
+    # circle_center = (y_center, x_center)
     x_center = np.random.randint(0, x_dim)
     y_center = np.random.randint(0, y_dim)
-
-    # circle_center = (y_center, x_center)
+    
     radius = 20
 
     # let's create a grid of x and y coordinates
@@ -97,7 +86,7 @@ def add_tube(image, mask):
     return image, mask
 # %%
 
-def get_3DImage():
+def get_3DImage(img_shape = img_shape): 
     image = np.zeros(img_shape)
     mask = np.zeros(img_shape)
 
@@ -107,11 +96,11 @@ def get_3DImage():
 
     return image, mask
 
-def get_batch(gen_img_fct, batch_size: int):
+def get_batch(gen_img_fct, img_shape = img_shape, batch_size: int = 10):
     images = []
     masks = []
     for _ in range(batch_size):
-        image, mask = gen_img_fct()
+        image, mask = gen_img_fct(img_shape = img_shape)
         images.append(image[None, :, :])
         masks.append(mask[None, :, :])
 
