@@ -21,9 +21,8 @@ from models.unet3D import UNet3D, softdiceloss, dice_bce_loss
 # %%
 # define which device is used for training
 
-threeDimensions = True
-default_image_shape = cubic_simple_dims
-image_generator = ImageGenerator(default_image_shape)
+threeDimensions = False
+default_image_shape = cubic_simple_dims # only works for 3d
 
 device = get_best_device()
 
@@ -38,6 +37,7 @@ print(f"Using {device} device. Every tensor created will be by default on {devic
 if threeDimensions:
     print("setting default functions for three dimensions")
     default_model = UNet3D
+    image_generator = ImageGenerator(default_image_shape)
 
     default_image_generation_function = image_generator.get_3DImage
     default_image_mask_visulization_function = display3DImageMaskTuple
