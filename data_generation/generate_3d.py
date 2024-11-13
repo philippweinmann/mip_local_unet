@@ -6,12 +6,56 @@ from matplotlib import pyplot as plt
 from data_generation.config import original_image_shape
 
 # %%
+def visualize3Dimage(image):
+    '''
+    the 1s are plotted, the zeroes not.
+    requires binary images
+    '''
+    x, y, z = np.where(image == 1)
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    # Plot the '1's in the image
+    ax.scatter(x, y, z, c='red', marker='o')
+
+    # Set labels and show the plot
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+
+    ax.set_xlim([0, image.shape[0]])
+    ax.set_ylim([0, image.shape[1]])
+    ax.set_zlim([0, image.shape[2]])
+    
+    plt.show()
+
+class ImageGenerator():
+    def __init__(self, img_shape):
+        self.img_shape = img_shape
+
+    def get_3DImage(self): 
+        image3d = Image3d(img_shape =self.img_shape)
+
+        return image3d.image, image3d.mask
+    
+    def get_3D_batch(self, batch_size: int = 10):
+        images = []
+        masks = []
+        for _ in range(batch_size):
+            image3d = self.get_3DImage()
+            images.append(image3d.image[None, :, :])
+            masks.append(image3d.mask[None, :, :])
+
+        return np.array(images), np.array(masks)
+
 class Image3d():
     def __init__(self, img_shape):
         self.img_shape = img_shape
         self.image = np.zeros(img_shape)
         self.mask = np.zeros(img_shape)
-        self.generate_network_input()
+        self.add_cube()
+        self.add_tube()
 
     def visualize3Dimage(self):
         '''
@@ -70,31 +114,4 @@ class Image3d():
 
         self.image[:,circle_mask] = 1
         self.mask[:,circle_mask] = 1
-
-    def generate_network_input(self):
-        self.add_cube()
-        self.add_tube()
-
-    
-simplified_xy_dims = original_image_shape[1] // 16 # for faster execution
-simplified_slices = simplified_xy_dims # the Unet requires an input that can be divided by 16???
-x_dim = simplified_xy_dims
-y_dim = simplified_xy_dims  # 256 x 256 images
-
-img_shape = (simplified_slices, y_dim, x_dim)
 # %%
-
-def get_3DImage(img_shape = img_shape): 
-    image3d = Image3d(img_shape)
-
-    return image3d.image, image3d.mask
-
-def get_batch(gen_img_fct, img_shape = img_shape, batch_size: int = 10):
-    images = []
-    masks = []
-    for _ in range(batch_size):
-        image, mask = gen_img_fct(img_shape = img_shape)
-        images.append(image[None, :, :])
-        masks.append(mask[None, :, :])
-
-    return np.array(images), np.array(masks)

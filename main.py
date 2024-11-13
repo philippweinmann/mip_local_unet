@@ -7,9 +7,9 @@ import torch
 import torch.nn as nn
 
 from data_generation.generate_2d import get_image_with_random_shapes
-from data_generation.generate_3d import get_3DImage
+from data_generation.generate_3d import ImageGenerator
 from data_generation.generate_utils import get_batch
-from data_generation.config import original_image_shape
+from data_generation.config import original_image_shape, cubic_simple_dims
 
 from matplotlib import pyplot as plt
 from models.net_utils import calculate_jaccard_score, calculate_dice_score, calculate_hausdorff_distance
@@ -22,7 +22,8 @@ from models.unet3D import UNet3D, softdiceloss, dice_bce_loss
 # define which device is used for training
 
 threeDimensions = True
-useOrgImageShape = True
+default_image_shape = cubic_simple_dims
+image_generator = ImageGenerator(default_image_shape)
 
 device = get_best_device()
 
@@ -38,7 +39,7 @@ if threeDimensions:
     print("setting default functions for three dimensions")
     default_model = UNet3D
 
-    default_image_generation_function = get_3DImage
+    default_image_generation_function = image_generator.get_3DImage
     default_image_mask_visulization_function = display3DImageMaskTuple
     default_model_progress_visualization_function = three_d_visualize_model_progress
     # default_loss_fn = softdiceloss
