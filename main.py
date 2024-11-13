@@ -9,6 +9,7 @@ import torch.nn as nn
 from data_generation.generate_2d import get_image_with_random_shapes
 from data_generation.generate_3d import get_3DImage
 from data_generation.generate_utils import get_batch
+from data_generation.config import original_image_shape
 
 from matplotlib import pyplot as plt
 from models.net_utils import calculate_jaccard_score, calculate_dice_score, calculate_hausdorff_distance
@@ -20,11 +21,12 @@ from models.unet3D import UNet3D, softdiceloss, dice_bce_loss
 # %%
 # define which device is used for training
 
-ThreeDimensions = True
+threeDimensions = True
+useOrgImageShape = True
 
 device = get_best_device()
 
-if ThreeDimensions & (device == "mps"):
+if threeDimensions & (device == "mps"):
     device = "cpu"
 
 torch.set_default_device(device)
@@ -32,7 +34,7 @@ print(f"Using {device} device. Every tensor created will be by default on {devic
 # %%
 
 
-if ThreeDimensions:
+if threeDimensions:
     print("setting default functions for three dimensions")
     default_model = UNet3D
 
