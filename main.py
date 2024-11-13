@@ -15,7 +15,7 @@ from models.net_utils import calculate_jaccard_score, calculate_dice_score, calc
 from models.net_visualizations import two_d_visualize_model_progress, three_d_visualize_model_progress, display2DImageMaskTuple, display3DImageMaskTuple
 
 from models.unet2D import UNet
-from models.unet3D import UNet3D, softdiceloss, DiceBCELoss
+from models.unet3D import UNet3D, softdiceloss, dice_bce_loss
 # %%
 # define which device is used for training
 
@@ -48,7 +48,8 @@ if ThreeDimensions:
     default_image_generation_function = get_3DImage
     default_image_mask_visulization_function = display3DImageMaskTuple
     default_model_progress_visualization_function = three_d_visualize_model_progress
-    default_loss_fn = softdiceloss
+    # default_loss_fn = softdiceloss
+    default_loss_fn = dice_bce_loss
 else:
     print("setting default functions for two dimensions")
     default_model = UNet
@@ -161,6 +162,7 @@ loss_fn = default_loss_fn
 optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
 epochs = 200
 
+# %%
 try:
     for t in range(epochs):
         print(f"Epoch {t+1}\n-------------------------------")

@@ -11,6 +11,13 @@ simplified_slices = simplified_xy_dims # the Unet requires a cube
 x_dim = simplified_xy_dims
 y_dim = simplified_xy_dims  # 256 x 256 images
 
+
+'''
+simplified_xy_dims = 256
+simplified_slices = 275
+x_dim = simplified_xy_dims
+y_dim = simplified_xy_dims
+'''
 img_shape = (simplified_slices, y_dim, x_dim)
 # print(img_shape)
 # %%
