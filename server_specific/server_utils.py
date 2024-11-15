@@ -1,5 +1,6 @@
 # %%
 from pathlib import Path
+import nibabel as nib
 
 training_data_folder = Path("/data/training_data/")
 training_files = list(training_data_folder.iterdir())
@@ -20,6 +21,12 @@ class Patient:
     def set_label_fp(self, label_fp):
         assert label_fp.exists(), f"{label_fp} does not exist"
         self.label_fp = label_fp
+
+    def get_image_mask_tuple(self):
+        image = nib.load(self.image_fp).get_fdata()
+        mask = nib.load(self.label_fp).get_fdata()
+
+        return image, mask
 
 def get_patients():
     training_files = list(training_data_folder.iterdir())
