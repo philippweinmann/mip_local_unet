@@ -1,5 +1,6 @@
 # %%
 import numpy as np
+from skimage.util import view_as_blocks
 
 def pad_image(image, patch_size):
     # we expect the z_dimension to need padding
@@ -18,7 +19,39 @@ def pad_image(image, patch_size):
     print(f"padding done. Original size: {image.shape}, padded shape: {padded_image.shape}")
 
     return padded_image
+# %%
 
-image = np.zeros((275, 512, 512))
-padded_img = pad_image(image, patch_size=64)
+def divide_3d_image_into_patches(image_3d, block_shape):
+    patches = view_as_blocks(image_3d, block_shape).squeeze()
+
+    return patches
+
+# patches = divide_3d_image_into_patches(image_3d=np.zeros((320, 512, 512)), block_shape = (64, 64, 64))
+# %%
+# print(patches.shape)
+# %%
+def combine_patches_into_3d_image(patches):
+    patch_shape = patches.shape
+    block_shape = (patch_shape[3], patch_shape[4], patch_shape[5])
+
+    reconstructed_image = np.zeros((patch_shape[0] * block_shape[0],
+                                patch_shape[1] * block_shape[1],
+                                patch_shape[2] * block_shape[2]))
+
+    # Fill in the reconstructed image with the patches
+    # just do these 3 for loops during training as well
+    for i in range(patch_shape[0]):
+        for j in range(patch_shape[1]):
+            for k in range(patch_shape[2]):
+                current_patch = patches[i, j, k]
+                reconstructed_image[
+                    i * block_shape[0]:(i + 1) * block_shape[0],
+                    j * block_shape[1]:(j + 1) * block_shape[1],
+                    k * block_shape[2]:(k + 1) * block_shape[2]
+                ] = current_patch
+
+    # Verify if the reconstructed image matches the original dimensions
+    print(reconstructed_image.shape)
+
+    return reconstructed_image
 # %%
