@@ -20,6 +20,7 @@ from models.net_utils import get_best_device
 from models.net_visualizations import three_d_visualize_model_progress, display3DImageMaskTuple
 
 from models.unet3D import UNet3D, dice_bce_loss
+from data.data_utils import pad_image
 # %%
 # define which device is used for training
 # todo replace with original image shape
