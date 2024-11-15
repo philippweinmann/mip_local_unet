@@ -1,8 +1,8 @@
 # %%
 # for archivation purposes and demos.
 # %%
-%load_ext autoreload
-%autoreload 2
+# %load_ext autoreload
+# %autoreload 2
 
 import copy
 import torch

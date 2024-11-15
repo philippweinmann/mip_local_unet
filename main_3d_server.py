@@ -4,8 +4,8 @@
 # no clutter, single purpose.
 # only meant to be run on data that has the same shape as the medical ccta scans.
 # %%
-%load_ext autoreload
-%autoreload 2
+# %load_ext autoreload
+# %autoreload 2
 
 import copy
 import torch
