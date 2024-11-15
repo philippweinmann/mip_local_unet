@@ -22,6 +22,9 @@ def pad_image(image, patch_size):
 # %%
 
 def divide_3d_image_into_patches(image_3d, block_shape):
+    print("dividing image into patches")
+    print(f"image shape: {image_3d.shape}, block shape: {block_shape}")
+
     patches = view_as_blocks(image_3d, block_shape).squeeze()
 
     return patches
