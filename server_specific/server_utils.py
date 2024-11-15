@@ -26,6 +26,9 @@ class Patient:
         image = nib.load(self.image_fp).get_fdata()
         mask = nib.load(self.label_fp).get_fdata()
 
+        # x, y, z to z, x, y
+        image = image.transpose(2, 1, 0)
+        mask = mask.transpose(2, 1, 0)
         return image, mask
 
 def get_patients():
