@@ -39,7 +39,6 @@ image_generator = ImageGenerator(default_image_shape)
 
 default_image_mask_visulization_function = display3DImageMaskTuple
 default_model_progress_visualization_function = three_d_visualize_model_progress
-default_loss_fn = dice_bce_loss
 
 model = UNet3D(in_channels=1, num_classes=1)
 model.to(device);
@@ -140,7 +139,7 @@ patience_base_value = 3
 patience = patience_base_value
 
 # loss_fn = nn.BCELoss()
-loss_fn = default_loss_fn
+loss_fn = dice_bce_loss
 optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
 epochs = 200
 
