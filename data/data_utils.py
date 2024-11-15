@@ -16,15 +16,14 @@ def pad_image(image, patch_size):
 
     # Pad the array with zeros along the first dimension
     padded_image = np.pad(image, ((0, z_pad_length), (0,0), (0, 0)), mode='constant')
-    print(f"padding done. Original size: {image.shape}, padded shape: {padded_image.shape}")
+    # print(f"padding done. Original size: {image.shape}, padded shape: {padded_image.shape}")
 
     return padded_image
 # %%
 
 def divide_3d_image_into_patches(image_3d, block_shape):
-    print("dividing image into patches")
-    print(f"image shape: {image_3d.shape}, block shape: {block_shape}")
-
+    # print("dividing image into patches")
+    # print(f"image shape: {image_3d.shape}, block shape: {block_shape}")
     patches = view_as_blocks(image_3d, block_shape).squeeze()
 
     return patches
