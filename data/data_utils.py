@@ -55,3 +55,13 @@ def combine_patches_into_3d_image(patches):
 
     return reconstructed_image
 # %%
+def get_padded_patches(image, mask, patch_size):
+    block_shape = (patch_size, patch_size, patch_size)
+
+    image = pad_image(image, patch_size=patch_size)
+    mask = pad_image(mask, patch_size=patch_size)
+
+    image_patches = divide_3d_image_into_patches(np.squeeze(image), block_shape=block_shape)
+    mask_patches = divide_3d_image_into_patches(np.squeeze(mask), block_shape=block_shape)
+
+    return image_patches, mask_patches
