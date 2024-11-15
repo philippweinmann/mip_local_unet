@@ -51,7 +51,7 @@ else:
     default_image_generation_function = get_image_with_random_shapes
     default_image_mask_visulization_function = display2DImageMaskTuple
     default_model_progress_visualization_function = two_d_visualize_model_progress
-    default_loss_fn = nn.BCELoss
+    default_loss_fn = nn.BCELoss()
 
 model = default_model(in_channels=1, num_classes=1)
 model.to(device);
