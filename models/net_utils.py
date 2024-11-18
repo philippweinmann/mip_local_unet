@@ -133,5 +133,5 @@ def calculate_correctness_for_binary_input(pred, mask):
         else:
             false_positive = 1
     
-    return correct_positive, correct_negative, false_positive, false_negative
+    return np.array([correct_positive, correct_negative, false_positive, false_negative])
     
