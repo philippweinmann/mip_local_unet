@@ -47,7 +47,7 @@ class CCTAPipeline:
             for j in range(patch_shape[1]):
                 for k in range(patch_shape[2]):
                     patch_counter += 1
-                    print(f"processing patch {patch_counter} / {patch_shape[0] * patch_shape[1] * patch_shape[2]}")
+                    print(f"processing patch {patch_counter} / {patch_shape[0] * patch_shape[1] * patch_shape[2]}", end="\r")
                     current_image_patch = patches[i, j, k]
 
                     current_image_patch = prepare_image_for_network_input(current_image_patch)

@@ -75,7 +75,7 @@ def train_loop(model, loss_fn, optimizer, batch_size = 10, training_batches = 20
         additional_metrics = []
         
         for name, additional_score_function in additional_score_tuples:
-            score = additional_score_function(masks, images)
+            score = additional_score_function(masks, pred)
             additional_metrics.append((name, score))
 
         loss.backward()
