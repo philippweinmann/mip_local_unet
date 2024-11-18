@@ -2,23 +2,23 @@
 # also to debug the model.
 
 # %%
-# %load_ext autoreload
-# %autoreload 2
+%load_ext autoreload
+%autoreload 2
 
 import copy
 import torch
 import torch.nn as nn
 
-from data_generation.generate_3d import ImageGenerator
+from data_generation.generate_3d import ImageGenerator, visualize3Dimage
 from data_generation.generate_utils import get_batch
 from data_generation.config import original_image_shape, cubic_simple_dims
 
 from matplotlib import pyplot as plt
 from models.net_utils import calculate_jaccard_score, calculate_dice_score
-from models.net_utils import get_best_device
+from models.net_utils import get_best_device, save_model
 from models.net_visualizations import three_d_visualize_model_progress, display3DImageMaskTuple
-
 from models.unet3D import UNet3D, dice_bce_loss
+from models.inference_pipeline import CCTAPipeline
 # %%
 # define which device is used for training
 
@@ -114,7 +114,7 @@ def test_loop(model, loss_fn, batch_size = 10, test_batches = 5):
     jaccard_score /= test_batches
     dice_score /= test_batches
 
-    print(f"Test loss: {test_loss:>8f}  | Jaccard Score: {jaccard_score:>8f} | Dice Score: {dice_score:>8f}\n", end="\r")
+    print(f"Test loss: {test_loss:>6f}  | Jaccard Score: {jaccard_score:>6f} | Dice Score: {dice_score:>6f}\n", end="\r")
 
     default_model_progress_visualization_function(model, default_image_generation_function)
     
@@ -169,9 +169,33 @@ except KeyboardInterrupt:
     model.eval()
 
 # %%
+save_model(model)
+
+# %%
 print("------INFERENCE--------")
 for i in range(10):
     mask, pred = default_model_progress_visualization_function(model, get_image_fct=default_image_generation_function)
     print("jaccard score for above image: ", calculate_jaccard_score(mask, pred))
 
+# %%
+# %%
+# load the model
+model = default_model(in_channels=1, num_classes=1)
+model.load_state_dict(torch.load("saved_models/3d_model20241118-132038.pth"))
+model.to(device)
+model.eval()
+# %%
+# Building inference pipeline, wip
+from models.inference_pipeline import CCTAPipeline
+ccta_pipeline = CCTAPipeline(model, block_size=64)
+
+# %%
+inference_image_generator = ImageGenerator(img_shape=original_image_shape)
+dummy_scan = inference_image_generator.get_3DImage()[0]
+
+assert dummy_scan.shape == original_image_shape
+# %%
+prediction = ccta_pipeline(dummy_scan)
+# %%
+visualize3Dimage(prediction)
 # %%
