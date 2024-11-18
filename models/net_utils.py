@@ -111,3 +111,27 @@ def save_model(model):
     # saving the model
     torch.save(model.state_dict(), model_save_path)
     print(f"model saved at: {model_save_path}")
+
+# Binary CNN specific functions
+def calculate_correctness_for_binary_input(pred, mask):
+    assert mask in [0, 1]
+    assert pred <= 1 and pred >= 0
+
+    correct_positive = 0
+    correct_negative = 0
+    false_positive = 0
+    false_negative = 0
+
+    if mask == 1:
+        if pred > 0.5:
+            correct_positive = 1
+        else:
+            false_negative = 1
+    else:
+        if pred < 0.5:
+            correct_negative = 1
+        else:
+            false_positive = 1
+    
+    return correct_positive, correct_negative, false_positive, false_negative
+    
