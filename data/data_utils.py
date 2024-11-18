@@ -14,11 +14,13 @@ def pad_image(image, patch_size):
     # we need to add that many slices
     z_pad_length = patch_size - rest
 
-    # Pad the array with zeros along the first dimension
+    # Pad the array with zeros along the first dimension, the zeroes are added at the end
     padded_image = np.pad(image, ((0, z_pad_length), (0,0), (0, 0)), mode='constant')
     # print(f"padding done. Original size: {image.shape}, padded shape: {padded_image.shape}")
 
-    return padded_image
+    assert np.all(padded_image[-z_pad_length:0] == 0)
+
+    return padded_image, z_pad_length
 # %%
 
 def divide_3d_image_into_patches(image_3d, block_shape):
@@ -60,8 +62,8 @@ def combine_patches_into_3d_image(patches):
 def get_padded_patches(image, mask, patch_size):
     block_shape = (patch_size, patch_size, patch_size)
 
-    image = pad_image(image, patch_size=patch_size)
-    mask = pad_image(mask, patch_size=patch_size)
+    image, _ = pad_image(image, patch_size=patch_size)
+    mask, _ = pad_image(mask, patch_size=patch_size)
 
     image_patches = divide_3d_image_into_patches(np.squeeze(image), block_shape=block_shape)
     mask_patches = divide_3d_image_into_patches(np.squeeze(mask), block_shape=block_shape)

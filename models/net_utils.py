@@ -32,7 +32,12 @@ def prepare_image_for_network_input(image):
 
 
 def prepare_image_for_analysis(image):
-    image = image.detach().cpu().numpy()
+    # I know bad code...
+    try:
+        image = image.detach().cpu().numpy()
+    except:
+        pass
+
     image = np.squeeze(image)
 
     return image
@@ -43,6 +48,7 @@ def binarize_image_pp(image):
     return binary_image
 
 def get_binary_data(masks, images):
+    # I know bad code...
     try:
         masks = masks.detach().cpu().numpy()
         images = images.detach().cpu().numpy()
@@ -100,7 +106,7 @@ def save_model(model):
     timestr = time.strftime("%Y%m%d-%H%M%S")
 
     model_name = "3d_model" + timestr + ".pth"
-    model_save_path = "models/" + model_name
+    model_save_path = "saved_models/" + model_name
 
     # saving the model
     torch.save(model.state_dict(), model_save_path)

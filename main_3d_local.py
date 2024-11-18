@@ -9,7 +9,7 @@ import copy
 import torch
 import torch.nn as nn
 
-from data_generation.generate_3d import ImageGenerator
+from data_generation.generate_3d import ImageGenerator, visualize3Dimage
 from data_generation.generate_utils import get_batch
 from data_generation.config import original_image_shape, cubic_simple_dims
 
@@ -17,7 +17,6 @@ from matplotlib import pyplot as plt
 from models.net_utils import calculate_jaccard_score, calculate_dice_score
 from models.net_utils import get_best_device, save_model
 from models.net_visualizations import three_d_visualize_model_progress, display3DImageMaskTuple
-
 from models.unet3D import UNet3D, dice_bce_loss
 from models.inference_pipeline import CCTAPipeline
 # %%
@@ -180,7 +179,11 @@ for i in range(10):
 
 # %%
 # %%
-
+# load the model
+model = default_model(in_channels=1, num_classes=1)
+model.load_state_dict(torch.load("saved_models/3d_model20241118-132038.pth"))
+model.to(device)
+model.eval()
 # %%
 # Building inference pipeline, wip
 from models.inference_pipeline import CCTAPipeline
@@ -193,4 +196,6 @@ dummy_scan = inference_image_generator.get_3DImage()[0]
 assert dummy_scan.shape == original_image_shape
 # %%
 prediction = ccta_pipeline(dummy_scan)
+# %%
+visualize3Dimage(prediction)
 # %%
