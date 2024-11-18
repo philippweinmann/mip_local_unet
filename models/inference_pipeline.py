@@ -54,6 +54,7 @@ class CCTAPipeline:
 
                     with torch.no_grad():
                         current_prediction_patch = self.model(current_image_patch)
+                        current_prediction_patch = prepare_image_for_analysis(current_prediction_patch)
                     
                     prediction_patches[i,j,k] = current_prediction_patch
         
