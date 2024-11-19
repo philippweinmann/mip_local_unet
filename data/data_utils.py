@@ -83,12 +83,14 @@ def shift_mean(image, average_mean):
 
     return adjusted_image
 
-def calculate_voxel_intensities_of_the_masked_area(images, masks):
+def calculate_voxel_intensities_of_the_masked_area(patients):
     bin_edges = np.arange(-2000, 2000, 100)
     total_counts = np.zeros(len(bin_edges) - 1)
 
-    amt_images = len(images)
-    for image_idx, (image, mask) in enumerate(zip(images, masks)):
+    amt_images = len(patients)
+    for image_idx, patient in enumerate(patients):
+        image, mask = patient.get_image_mask_tuple()
+
         print(f"processing image {image_idx + 1} / {amt_images}")
         masked_image = image[mask > 0]
         counts, _ = np.histogram(masked_image, bin_edges)
