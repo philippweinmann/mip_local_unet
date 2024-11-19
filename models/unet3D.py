@@ -13,12 +13,29 @@ os.environ['PYTORCH_ENABLE_MPS_FALLBACK'] = '1' # maxpool3d is not implemented f
 
 # %%
 # let's define the unet model here
-class DoubleConv3D(nn.Module):  
+
+class FirstDoubleConv3D(nn.Module):  
+    # without the first batchNorm, so that it doesn't loose the information about pixel intensities.
     def __init__(self, in_channels, out_channels):  
         super().__init__()  
         self.conv_op = nn.Sequential(
             nn.Conv3d(in_channels, out_channels, kernel_size=3, padding=1),
             # nn.BatchNorm3d(out_channels),
+            nn.ReLU(inplace=True),
+            nn.Conv3d(out_channels, out_channels, kernel_size=3, padding=1),
+            # nn.BatchNorm3d(out_channels),
+            nn.ReLU(inplace=True)
+        )
+  
+    def forward(self, x):
+        return self.conv_op(x)
+
+class DoubleConv3D(nn.Module):  
+    def __init__(self, in_channels, out_channels):  
+        super().__init__()  
+        self.conv_op = nn.Sequential(
+            nn.Conv3d(in_channels, out_channels, kernel_size=3, padding=1),
+            nn.BatchNorm3d(out_channels),
             nn.ReLU(inplace=True),
             nn.Conv3d(out_channels, out_channels, kernel_size=3, padding=1),
             nn.BatchNorm3d(out_channels),
@@ -27,6 +44,18 @@ class DoubleConv3D(nn.Module):
   
     def forward(self, x):
         return self.conv_op(x)
+
+class FirstDownSample(nn.Module):  
+    def __init__(self, in_channels, out_channels):  
+        super().__init__()  
+        self.conv = FirstDoubleConv3D(in_channels, out_channels)  
+        self.pool = nn.MaxPool3d(kernel_size=2, stride=2)  
+  
+    def forward(self, x):  
+        down = self.conv(x)  
+        p = self.pool(down)  
+  
+        return down, p
     
 class DownSample(nn.Module):  
     def __init__(self, in_channels, out_channels):  
@@ -59,7 +88,7 @@ class UNet3D(nn.Module):
     def __init__(self, in_channels, num_classes):  
         super().__init__()
         first_out_channels = 16
-        self.down_convolution_1 = DownSample(in_channels, first_out_channels)  
+        self.down_convolution_1 = FirstDownSample(in_channels, first_out_channels)  
         self.down_convolution_2 = DownSample(first_out_channels, first_out_channels * 2)  
         self.down_convolution_3 = DownSample(first_out_channels * 2, first_out_channels * 2 * 2)  
         self.down_convolution_4 = DownSample(first_out_channels * 2 * 2, first_out_channels * 2 * 2 * 2)

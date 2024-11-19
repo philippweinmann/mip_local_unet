@@ -42,12 +42,12 @@ def prepare_image_for_analysis(image):
 
     return image
 
-def binarize_image_pp(image):
+def binarize_image_pp(image, threshold = 0.5):
     '''The network outputs a binary probability. For the final result and some metrics, like the jackard score, we need to decide if the value is 1 or 0.'''
-    binary_image = np.where(image > 0.5, 1, 0)
+    binary_image = np.where(image > threshold, 1, 0)
     return binary_image
 
-def get_binary_data(masks, images):
+def get_binary_data(masks, images, threshold = 0.5):
     # I know bad code...
     try:
         masks = masks.detach().cpu().numpy()
@@ -55,30 +55,30 @@ def get_binary_data(masks, images):
     except:
         pass
 
-    masks = binarize_image_pp(masks)
-    images = binarize_image_pp(images)
+    masks = binarize_image_pp(masks, threshold)
+    images = binarize_image_pp(images, threshold)
 
     return masks, images
 
-def calculate_score(masks, images, score_fct):
-    masks, images = get_binary_data(masks, images)
+def calculate_score(masks, images, score_fct, threshold = 0.5):
+    masks, images = get_binary_data(masks, images, threshold)
 
     score = score_fct(masks.flatten(), images.flatten())
     return score
 
-def calculate_jaccard_score(masks, images):
+def calculate_jaccard_score(masks, images, threshold = 0.5):
     '''
     0: no overlap
     1: perfect overlap
     '''
-    return calculate_score(masks, images, score_fct=jaccard_score)
+    return calculate_score(masks, images, score_fct=jaccard_score, threshold=threshold)
 
-def calculate_dice_score(masks, images):
+def calculate_dice_score(masks, images, threshold = 0.5):
     '''
     0: no overlap
     1: perfect overlap
     '''
-    return calculate_score(masks, images, score_fct=f1_score)
+    return calculate_score(masks, images, score_fct=f1_score, threshold=threshold)
 
 def calculate_hausdorff_distance(masks, images):
     '''
