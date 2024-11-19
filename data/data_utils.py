@@ -89,7 +89,7 @@ def calculate_voxel_intensities_of_the_masked_area(images, masks):
 
     amt_images = len(images)
     for image_idx, (image, mask) in enumerate(zip(images, masks)):
-        print(f"processing image {image_idx} / {amt_images}")
+        print(f"processing image {image_idx + 1} / {amt_images}")
         masked_image = image[mask > 0]
         counts, _ = np.histogram(masked_image, bin_edges)
         total_counts += counts
