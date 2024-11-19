@@ -2,16 +2,20 @@ import numpy as np
 import torch
 from data.data_utils import divide_3d_image_into_patches, combine_patches_into_3d_image, pad_image
 from models.net_utils import prepare_image_for_network_input, prepare_image_for_analysis, binarize_image_pp
+from data.preprocessing import preprocess_ccta_scan
 
 class CCTA_scan:
     def __init__(self, ccta_scan: np.array, block_size):
         self.ccta_scan = ccta_scan
+        
+        # doing the preprocessing here, so that we don't have to deal with the padding during voxel shifting or otherwise.
+        self.preprocessed_ccta_scan = preprocess_ccta_scan(ccta_scan)
         self.original_shape = ccta_scan.shape
 
         self.prediction = None
 
         # adds padding at the end
-        self.padded_image, self.z_pad_length = pad_image(self.ccta_scan, patch_size=block_size)
+        self.padded_image, self.z_pad_length = pad_image(self.preprocessed_ccta_scan, patch_size=block_size)
         assert np.all(self.padded_image[self.padded_image.shape[0] - self.z_pad_length:] == 0)
 
     def get_unpadded_prediction(self, prediction):
