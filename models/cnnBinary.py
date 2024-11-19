@@ -23,5 +23,5 @@ class CNN_Binary(nn.Module):
         x = self.global_avg_pool(x)
         x = x.view(x.size(0), -1)  # Flatten the output
         
-        x = torch.sigmoid(self.fc(x))
+        x = self.fc(x)
         return x
