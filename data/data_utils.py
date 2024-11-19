@@ -69,3 +69,16 @@ def get_padded_patches(image, mask, patch_size):
     mask_patches = divide_3d_image_into_patches(np.squeeze(mask), block_shape=block_shape)
 
     return image_patches, mask_patches
+
+def clip_scans(image):
+    image[image < -2000] = -2000
+    image[image > 2000] = 2000
+
+    return image
+
+def shift_mean(image, average_mean):
+    current_mean = np.mean(image)
+    difference = average_mean - current_mean
+    adjusted_image = image + difference
+
+    return adjusted_image
