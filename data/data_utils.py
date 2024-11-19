@@ -70,9 +70,9 @@ def get_padded_patches(image, mask, patch_size):
 
     return image_patches, mask_patches
 
-def clip_scans(image):
-    image[image < -2000] = -2000
-    image[image > 2000] = 2000
+def clip_scans(image, min_value, max_value):
+    image[image < min_value] = min_value
+    image[image > max_value] = max_value
 
     return image
 
@@ -82,3 +82,20 @@ def shift_mean(image, average_mean):
     adjusted_image = image + difference
 
     return adjusted_image
+
+def calculate_voxel_intensities_of_the_masked_area(images, mask):
+    bin_edges = np.arange(-2000, 2000, 100)
+    total_counts = np.zeros(len(bin_edges) - 1)
+
+    amt_images = len(images)
+    for image_idx, image in enumerate(images):
+        print(f"processing image {image_idx} / {amt_images}")
+        masked_image = image[mask > 0]
+        counts, _ = np.histogram(masked_image, bin_edges)
+        total_counts += counts
+        
+    return total_counts, bin_edges
+
+    
+
+
