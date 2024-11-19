@@ -1,6 +1,7 @@
 # %%
 from pathlib import Path
 import nibabel as nib
+from data.preprocessing import preprocess_ccta_scan
 
 training_data_folder = Path("/data/training_data/")
 training_files = list(training_data_folder.iterdir())
@@ -29,6 +30,14 @@ class Patient:
         # x, y, z to z, x, y
         image = image.transpose(2, 1, 0)
         mask = mask.transpose(2, 1, 0)
+        return image, mask
+    
+    def get_preprocessed_image_mask_tuple(self):
+        image, mask = self.get_image_mask_tuple()
+
+        # shift the mean of the image to the average mean
+        image = preprocess_ccta_scan(image)
+
         return image, mask
 
 def get_patients():
