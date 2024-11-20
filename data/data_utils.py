@@ -109,6 +109,8 @@ def calculate_voxel_intensities_of_patches(patients, block_shape = (64, 64, 64))
     for image_idx, patient in enumerate(patients):
         print(f"processing image {image_idx + 1} / {amt_images}")
         image, mask = patient.get_image_mask_tuple()
+        image, _ = pad_image(image, patch_size=block_shape[0])
+        mask, _ = pad_image(mask, patch_size=block_shape[0])
 
         image_patches = divide_3d_image_into_patches(image, block_shape)
         mask_patches = divide_3d_image_into_patches(mask, block_shape)
