@@ -100,4 +100,31 @@ def calculate_voxel_intensities_of_the_masked_area(patients):
 
     
 
+def calculate_voxel_intensities_of_patches(patients, block_shape = (64, 64, 64)):
+    bin_edges = np.arange(-2000, 2000, 100)
+    total_counts_patch_with_coronary_arteries = np.zeros(len(bin_edges) - 1)
+    total_counts_patch_without_coronary_arteries = np.zeros(len(bin_edges) - 1)
 
+    amt_images = len(patients)
+    for image_idx, patient in enumerate(patients):
+        print(f"processing image {image_idx + 1} / {amt_images}")
+        image, mask = patient.get_image_mask_tuple()
+
+        image_patches = divide_3d_image_into_patches(image, block_shape)
+        mask_patches = divide_3d_image_into_patches(mask, block_shape)
+
+        patch_shapes = image_patches.shape
+        for i in range(patch_shapes[0]):
+            for j in range(patch_shapes[1]):
+                for k in range(patch_shapes[2]):
+                    current_image_patch = image_patches[i, j, k]
+                    current_mask_patch = mask_patches[i, j, k]
+
+                    counts, _ = np.histogram(current_image_patch, bin_edges)
+
+                    if np.any(current_mask_patch):
+                        total_counts_patch_with_coronary_arteries += counts
+                    else:
+                        total_counts_patch_without_coronary_arteries += counts
+        
+    return total_counts_patch_with_coronary_arteries, total_counts_patch_without_coronary_arteries, bin_edges
