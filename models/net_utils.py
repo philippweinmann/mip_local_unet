@@ -63,9 +63,11 @@ def get_binary_data(masks, images, threshold = 0.5):
 
 def calculate_scores(masks, images, score_fct, thresholds):
     scores = []
+    original_masks = masks.copy()
+    original_images = images.copy()
     for threshold in thresholds:
         print(f"Threshold: {threshold}")
-        masks, images = get_binary_data(masks, images, threshold)
+        masks, images = get_binary_data(original_masks.copy(), original_images.copy(), threshold)
         # count number of 1s in images
         amt_ones = np.sum(images)
         print(f"Amount of 1s in images: {amt_ones}")
