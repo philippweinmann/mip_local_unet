@@ -14,7 +14,7 @@ from data_generation.generate_utils import get_batch
 from data_generation.config import original_image_shape, cubic_simple_dims
 
 from matplotlib import pyplot as plt
-from models.net_utils import calculate_jaccard_score, calculate_dice_score
+from models.net_utils import calculate_jaccard_score, calculate_dice_scores
 from models.net_utils import get_best_device, save_model
 from models.net_visualizations import three_d_visualize_model_progress, display3DImageMaskTuple
 from models.unet3D import UNet3D, dice_bce_loss
@@ -57,7 +57,7 @@ default_model_progress_visualization_function(model, get_image_fct=default_image
 # %%
 print("----------------TRAINING-------------")
 
-additional_score_tuples = [("jaccard score", calculate_jaccard_score), ("dice score", calculate_dice_score)] # ("hausdorff distance", calculate_hausdorff_distance)
+additional_score_tuples = [("jaccard score", calculate_jaccard_score), ("dice score", calculate_dice_scores)] # ("hausdorff distance", calculate_hausdorff_distance)
 
 def train_loop(model, loss_fn, optimizer, batch_size = 10, training_batches = 20):
     model.train()
@@ -107,7 +107,7 @@ def test_loop(model, loss_fn, batch_size = 10, test_batches = 5):
             test_loss += loss_fn(pred, masks).item()
 
             jaccard_score += calculate_jaccard_score(masks, images)
-            dice_score += calculate_dice_score(masks, images)
+            dice_score += calculate_dice_scores(masks, images)
 
 
     test_loss /= test_batches

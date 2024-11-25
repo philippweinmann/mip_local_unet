@@ -16,7 +16,7 @@ from data_generation.generate_utils import get_batch
 from data_generation.config import original_image_shape, cubic_simple_dims
 
 from matplotlib import pyplot as plt
-from models.net_utils import calculate_jaccard_score, calculate_dice_score
+from models.net_utils import calculate_jaccard_score, calculate_dice_scores
 from models.net_utils import get_best_device, prepare_image_for_network_input, prepare_image_for_analysis
 from models.net_visualizations import three_d_visualize_model_progress, display3DImageMaskTuple
 
@@ -57,7 +57,7 @@ print("image_shape: ", image.shape)
 # %%
 print("----------------TRAINING-------------")
 
-additional_score_tuples = [("jaccard score", calculate_jaccard_score), ("dice score", calculate_dice_score)] # ("hausdorff distance", calculate_hausdorff_distance)
+additional_score_tuples = [("jaccard score", calculate_jaccard_score), ("dice score", calculate_dice_scores)] # ("hausdorff distance", calculate_hausdorff_distance)
 
 padded_shape = (320, 512, 512)
 patch_size = 64
@@ -148,7 +148,7 @@ def test_loop(model, loss_fn):
                     test_loss += patch_loss
 
                     patch_jaccard_score = calculate_jaccard_score(current_mask_patch, current_prediction_patch)
-                    patch_dice_score = calculate_dice_score(current_mask_patch, current_prediction_patch)
+                    patch_dice_score = calculate_dice_scores(current_mask_patch, current_prediction_patch)
 
                     jaccard_score += patch_jaccard_score
                     dice_score += patch_dice_score
