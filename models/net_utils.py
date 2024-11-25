@@ -43,7 +43,6 @@ def prepare_image_for_analysis(image):
     return image
 
 def binarize_image_pp(image, threshold = 0.5):
-    print(f"threshold: {threshold}")
     '''The network outputs a binary probability. For the final result and some metrics, like the jackard score, we need to decide if the value is 1 or 0.'''
     binary_image = np.where(image > threshold, 1, 0)
     return binary_image
@@ -66,11 +65,9 @@ def calculate_scores(masks, images, score_fct, thresholds):
     original_masks = masks.clone()
     original_images = images.clone()
     for threshold in thresholds:
-        print(f"Threshold: {threshold}")
         masks, images = get_binary_data(original_masks.clone(), original_images.clone(), threshold)
         # count number of 1s in images
         amt_ones = np.sum(images)
-        print(f"Amount of 1s in images: {amt_ones}")
         scores.append(score_fct(masks.flatten(), images.flatten()))
     return scores
 
