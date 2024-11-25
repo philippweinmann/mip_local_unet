@@ -197,3 +197,4 @@ pyrightconfig.json
 
 preprocessed_patches/*
 .DS_Store
+preprocessed_patches_centered/*

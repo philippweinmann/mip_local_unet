@@ -6,7 +6,7 @@ import numpy as np
 from data.data_utils import pad_image, resample_image, clip_scans, min_max_normalize, divide_3d_image_into_patches
 
 training_voxel_spacing = [0.5,0.5,0.5]
-output_dir = Path("/home/tu-philw/group/gecko/pweinmann/mip_local_unet/preprocessed_patches/")
+output_dir = Path("/home/tu-philw/group/gecko/pweinmann/mip_local_unet/preprocessed_patches_centered/")
 clipping_min = -600
 clipping_max = 1000
 patch_size = 128
