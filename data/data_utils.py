@@ -1,26 +1,58 @@
 # %%
 import numpy as np
 from skimage.util import view_as_blocks
+from scipy.ndimage import zoom
+import nibabel as nib
+
+target_voxel_spacing = [0.5, 0.5, 0.5]
+
+def get_voxel_spacing(image_fp):
+    image = nib.load(image_fp)
+    (img_x_dim_spacing, img_y_dim_spacing, img_z_dim_spacing) = image.header.get_zooms()[:3]
+    
+    return [img_x_dim_spacing, img_y_dim_spacing, img_z_dim_spacing]
+
+
+def resample_image(image, original_spacing, target_spacing = target_voxel_spacing):
+    zoom_factors = [original_spacing[i] / target_spacing[i] for i in range(3)]
+    resampled_image = zoom(image, zoom_factors, order=1)  # Linear interpolation
+    return resampled_image
+
+def clip_scans(image, min_value, max_value):
+    image[image < min_value] = min_value
+    image[image > max_value] = max_value
+
+    return image
+
+def min_max_normalize(image, min_value, max_value):
+    image = (image - min_value) / (max_value - min_value)
+
+    return image
 
 def pad_image(image, patch_size):
-    # we expect the z_dimension to need padding
-    z_dim = image.shape[0]
+    shape = image.shape
+    print(shape)
 
-    rest = z_dim % patch_size
-    if rest == 0:
-        print(f"no padding required. Original image shape: {image.shape}")
-        return image
+    padded_image = image
+    pad_lengths = []
+    for idx, shape_dim in enumerate(shape):
+        rest = shape_dim % patch_size
 
-    # we need to add that many slices
-    z_pad_length = patch_size - rest
+        if rest == 0:
+            print(f"no padding required for dim {idx}. Original image shape: {image.shape}")
+            continue
 
-    # Pad the array with zeros along the first dimension, the zeroes are added at the end
-    padded_image = np.pad(image, ((0, z_pad_length), (0,0), (0, 0)), mode='constant')
-    # print(f"padding done. Original size: {image.shape}, padded shape: {padded_image.shape}")
+        # we need to add that many slices
+        pad_length = patch_size - rest
+        pad_lengths.append(pad_length)
 
-    assert np.all(padded_image[-z_pad_length:0] == 0)
+        # Pad the array with zeros along the first dimension, the zeroes are added at the end
+        pad_width = [(0, pad_length) if i == idx else (0, 0) for i in range(len(shape))]
+        padded_image = np.pad(padded_image, pad_width, mode='constant')
 
-    return padded_image, z_pad_length
+        assert np.all(padded_image[-pad_length:0] == 0)
+
+    return padded_image, pad_lengths
 # %%
 
 def divide_3d_image_into_patches(image_3d, block_shape):

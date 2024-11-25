@@ -129,14 +129,9 @@ def softdiceloss(predictions, targets, smooth: float = 0.001):
 
     targets_area = targets.view(batch_size, -1).sum(-1)
     predictions_area = predictions.view(batch_size, -1).sum(-1)
-    
-    amt_coronary_artery_pixels = torch.count_nonzero(targets)
-
-    multiplier = amt_coronary_artery_pixels / 1000
-    multiplier = min(multiplier, 1)
 
     dice = (2 * intersection + smooth) / (predictions_area + targets_area + smooth)
-    return multiplier * (1 - dice.mean())
+    return 1 - dice.mean()
 
 
 def dice_bce_loss(predictions, targets, weights = (1, 0.5)):
