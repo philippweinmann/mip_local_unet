@@ -64,8 +64,10 @@ def get_binary_data(masks, images, threshold = 0.5):
 def calculate_scores(masks, images, score_fct, thresholds):
     scores = []
     for threshold in thresholds:
+        print(f"Threshold: {threshold}")
         masks, images = get_binary_data(masks, images, threshold)
-
+        print(f"Masks after binarization: {masks}")
+        print(f"Images after binarization: {images}")
         scores.append(score_fct(masks.flatten(), images.flatten()))
     return scores
 
