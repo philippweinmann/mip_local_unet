@@ -43,6 +43,7 @@ def prepare_image_for_analysis(image):
     return image
 
 def binarize_image_pp(image, threshold = 0.5):
+    print(f"threshold: {threshold}")
     '''The network outputs a binary probability. For the final result and some metrics, like the jackard score, we need to decide if the value is 1 or 0.'''
     binary_image = np.where(image > threshold, 1, 0)
     return binary_image
