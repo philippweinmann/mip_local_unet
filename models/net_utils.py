@@ -60,25 +60,27 @@ def get_binary_data(masks, images, threshold = 0.5):
 
     return masks, images
 
-def calculate_score(masks, images, score_fct, threshold = 0.5):
-    masks, images = get_binary_data(masks, images, threshold)
+def calculate_score(masks, images, score_fct, thresholds = [0.5]):
+    scores = []
+    for threshold in thresholds:
+        masks, images = get_binary_data(masks, images, threshold)
 
-    score = score_fct(masks.flatten(), images.flatten())
-    return score
+        scores.append(score_fct(masks.flatten(), images.flatten()))
+    return scores
 
-def calculate_jaccard_score(masks, images, threshold = 0.5):
+def calculate_jaccard_score(masks, images, thresholds = [0.5]):
     '''
     0: no overlap
     1: perfect overlap
     '''
-    return calculate_score(masks, images, score_fct=jaccard_score, threshold=threshold)
+    return calculate_score(masks, images, score_fct=jaccard_score, threshold=thresholds)
 
-def calculate_dice_score(masks, images, threshold = 0.5):
+def calculate_dice_score(masks, images, thresholds = [0.1, 0.25, 0.4, 0.5]):
     '''
     0: no overlap
     1: perfect overlap
     '''
-    return calculate_score(masks, images, score_fct=f1_score, threshold=threshold)
+    return calculate_score(masks, images, score_fct=f1_score, threshold=thresholds)
 
 def calculate_hausdorff_distance(masks, images):
     '''
