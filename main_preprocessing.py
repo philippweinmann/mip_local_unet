@@ -16,6 +16,31 @@ clipping_min = -600
 clipping_max = 1000
 patch_size = 128
 
+def get_mean(patient):
+    image = nib.load(patient.image_fp)
+    mask = nib.load(patient.label_fp)
+
+    # fix voxel spacing
+    original_spacing = image.header.get_zooms()[:3]
+    image = resample_image(image.get_fdata(), original_spacing=original_spacing, target_spacing=training_voxel_spacing)
+    mask = resample_image(mask.get_fdata(), original_spacing=original_spacing, target_spacing=training_voxel_spacing)
+
+    # clip image
+    image = clip_scans(image, clipping_min, clipping_max)
+    
+    return image.mean()
+
+def get_mean_of_means(patients):
+    mean_of_means = []
+    amt_patients = len(patients)
+    for p_idx, patient in enumerate(patients):
+        print(f"patient {p_idx} / {amt_patients}")
+        current_mean = get_mean(patient)
+        print(f"current_mean: {current_mean}")
+        mean_of_means.append(current_mean)
+
+get_mean_of_means(get_patients())
+
 # %%
 def save_patches_for_patient(patient):
     image = nib.load(patient.image_fp)
@@ -68,4 +93,4 @@ def preprocess_and_save_ccta_scans(patients, amt_patients = None, output_dir=out
 
     print("Done")
 
-preprocess_and_save_ccta_scans(get_patients(), amt_patients=None, output_dir=output_test_dir)
+# preprocess_and_save_ccta_scans(get_patients(), amt_patients=None, output_dir=output_test_dir)
