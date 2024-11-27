@@ -5,8 +5,13 @@ import nibabel as nib
 import numpy as np
 from data.data_utils import pad_image, resample_image, clip_scans, min_max_normalize, divide_3d_image_into_patches
 
+import random
+
 training_voxel_spacing = [0.5,0.5,0.5]
-output_dir = Path("/home/tu-philw/group/gecko/pweinmann/mip_local_unet/preprocessed_patches_centered/")
+output_dir = Path("/home/tu-philw/group/gecko/pweinmann/mip_local_unet/preprocessed_patches/")
+output_dir_centered = Path("/home/tu-philw/group/gecko/pweinmann/mip_local_unet/preprocessed_patches_centered/")
+
+
 clipping_min = -600
 clipping_max = 1000
 patch_size = 128
@@ -46,7 +51,7 @@ def save_patches_for_patient(patient):
 
                 np.savez(output_dir / f"{patient.idx}_image_and_mask_patch_{x_dim}_{y_dim}_{z_dim}.npz", image = current_image_patch, mask = current_mask_patch)
 
-def preprocess_and_save_ccta_scans(patients, amt_patients = None):
+def preprocess_and_save_ccta_scans(patients, amt_patients = None, output_dir=output_dir):
     if amt_patients is None:
         amt_patients = len(patients)
 
@@ -63,4 +68,4 @@ def preprocess_and_save_ccta_scans(patients, amt_patients = None):
 
     print("Done")
 
-preprocess_and_save_ccta_scans(patients = get_patients())
+preprocess_and_save_ccta_scans(get_patients(), amt_patients=None, output_dir=output_test_dir)

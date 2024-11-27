@@ -48,27 +48,21 @@ def binarize_image_pp(image, threshold = 0.5):
     return binary_image
 
 def get_binary_data(masks, images, threshold = 0.5):
-    # I know bad code...
-    try:
-        masks = masks.detach().cpu().numpy()
-        images = images.detach().cpu().numpy()
-    except:
-        pass
-
     masks = binarize_image_pp(masks, threshold)
     images = binarize_image_pp(images, threshold)
 
     return masks, images
 
-def calculate_scores(masks, images, score_fct, thresholds):
+def calculate_scores(masks: np.array, images: np.array, score_fct, thresholds):
     scores = []
-    original_masks = masks.clone()
-    original_images = images.clone()
+    
+    flattened_masks = masks.flatten()
+    flattened_images = images.flatten()
+    
     for threshold in thresholds:
-        masks, images = get_binary_data(original_masks.clone(), original_images.clone(), threshold)
-        # count number of 1s in images
-        amt_ones = np.sum(images)
-        scores.append(score_fct(masks.flatten(), images.flatten()))
+        binary_masks, binary_images = get_binary_data(flattened_masks, flattened_images, threshold)
+        scores.append(score_fct(binary_masks, binary_images))
+        
     return scores
 
 def calculate_jaccard_score(masks, images, thresholds):

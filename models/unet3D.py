@@ -14,53 +14,36 @@ os.environ['PYTORCH_ENABLE_MPS_FALLBACK'] = '1' # maxpool3d is not implemented f
 # %%
 # let's define the unet model here
 
-class FirstDoubleConv3D(nn.Module):  
-    # without the first batchNorm, so that it doesn't loose the information about pixel intensities.
-    def __init__(self, in_channels, out_channels):  
-        super().__init__()  
-        self.conv_op = nn.Sequential(
-            nn.Conv3d(in_channels, out_channels, kernel_size=3, padding=1),
-            # nn.BatchNorm3d(out_channels),
-            nn.ReLU(inplace=True),
-            nn.Conv3d(out_channels, out_channels, kernel_size=3, padding=1),
-            # nn.BatchNorm3d(out_channels),
-            nn.ReLU(inplace=True)
-        )
-  
-    def forward(self, x):
-        return self.conv_op(x)
-
 class DoubleConv3D(nn.Module):  
-    def __init__(self, in_channels, out_channels):  
-        super().__init__()  
-        self.conv_op = nn.Sequential(
-            nn.Conv3d(in_channels, out_channels, kernel_size=3, padding=1),
-            nn.BatchNorm3d(out_channels),
-            nn.ReLU(inplace=True),
-            nn.Conv3d(out_channels, out_channels, kernel_size=3, padding=1),
-            nn.BatchNorm3d(out_channels),
-            nn.ReLU(inplace=True)
-        )
+    def __init__(self, in_channels, out_channels, use_norm=False):  
+        super().__init__()
+        assert out_channels % 4 == 0
+        if use_norm:
+            self.conv_op = nn.Sequential(
+                nn.Conv3d(in_channels, out_channels, kernel_size=3, padding=1),
+                nn.InstanceNorm3d(out_channels),
+                nn.ReLU(inplace=True),
+                nn.Conv3d(out_channels, out_channels, kernel_size=3, padding=1),
+                nn.InstanceNorm3d(out_channels),
+                nn.ReLU(inplace=True)
+            )
+        else:
+            self.conv_op = nn.Sequential(
+                nn.Conv3d(in_channels, out_channels, kernel_size=3, padding=1),
+                # nn.GroupNorm(num_groups=out_channels // 4, num_channels=out_channels),
+                nn.ReLU(inplace=True),
+                nn.Conv3d(out_channels, out_channels, kernel_size=3, padding=1),
+                # nn.GroupNorm(num_groups=out_channels // 4, num_channels=out_channels),
+                nn.ReLU(inplace=True)
+            )
   
     def forward(self, x):
         return self.conv_op(x)
-
-class FirstDownSample(nn.Module):  
-    def __init__(self, in_channels, out_channels):  
-        super().__init__()  
-        self.conv = FirstDoubleConv3D(in_channels, out_channels)  
-        self.pool = nn.MaxPool3d(kernel_size=2, stride=2)  
-  
-    def forward(self, x):  
-        down = self.conv(x)  
-        p = self.pool(down)  
-  
-        return down, p
     
-class DownSample(nn.Module):  
-    def __init__(self, in_channels, out_channels):  
+class DownSample(nn.Module): 
+    def __init__(self, in_channels, out_channels, use_norm = False):  
         super().__init__()  
-        self.conv = DoubleConv3D(in_channels, out_channels)  
+        self.conv = DoubleConv3D(in_channels, out_channels, use_norm)  
         self.pool = nn.MaxPool3d(kernel_size=2, stride=2)  
   
     def forward(self, x):  
@@ -72,13 +55,14 @@ class DownSample(nn.Module):
 class UpSample(nn.Module):  
     def __init__(self, in_channels, out_channels):  
         super().__init__()
+        assert in_channels % (4 * 2) == 0
         self.up = nn.ConvTranspose3d(in_channels, in_channels//2, kernel_size=2, stride=2)
-        self.batch_norm = nn.BatchNorm3d(in_channels//2)
+        self.norm = nn.InstanceNorm3d(in_channels//2)
         self.conv = DoubleConv3D(in_channels, out_channels)
     
     def forward(self, x1, x2):
         x1 = self.up(x1)
-        x1 = self.batch_norm(x1)
+        x1 = self.norm(x1)
 
         # we're gonna need some padding here
         x = torch.cat([x1, x2], 1)
@@ -88,10 +72,10 @@ class UNet3D(nn.Module):
     def __init__(self, in_channels, num_classes):  
         super().__init__()
         first_out_channels = 16
-        self.down_convolution_1 = FirstDownSample(in_channels, first_out_channels)  
-        self.down_convolution_2 = DownSample(first_out_channels, first_out_channels * 2)  
-        self.down_convolution_3 = DownSample(first_out_channels * 2, first_out_channels * 2 * 2)  
-        self.down_convolution_4 = DownSample(first_out_channels * 2 * 2, first_out_channels * 2 * 2 * 2)
+        self.down_convolution_1 = DownSample(in_channels, first_out_channels)  
+        self.down_convolution_2 = DownSample(first_out_channels, first_out_channels * 2, use_norm = True)  
+        self.down_convolution_3 = DownSample(first_out_channels * 2, first_out_channels * 2 * 2, use_norm = True)  
+        self.down_convolution_4 = DownSample(first_out_channels * 2 * 2, first_out_channels * 2 * 2 * 2, use_norm = True)
   
         self.bottle_neck = DoubleConv3D(first_out_channels * 2 * 2 * 2, first_out_channels * 2 * 2 * 2 * 2)
   
@@ -134,7 +118,7 @@ def softdiceloss(predictions, targets, smooth: float = 0.001):
     return 1 - dice.mean()
 
 
-def dice_bce_loss(predictions, targets, weights = (1, 0.5)):
+def dice_bce_loss(predictions, targets, weights = (1.0, 0.4)):
     '''
     Combination between the bce loss and the soft dice loss. 
     The goal is to get the advantages
@@ -148,3 +132,11 @@ def dice_bce_loss(predictions, targets, weights = (1, 0.5)):
     combination = weights[0] * soft_dice_loss + weights[1] * bce_loss
 
     return combination
+
+class DICEBCE:
+    def __init__(self, dice_weight, bce_weight):
+        self.dice_weight = dice_weight
+        self.bce_weight = bce_weight
+    
+    def __call__(self, predictions, targets):
+        return dice_bce_loss(predictions, targets, (self.dice_weight, self.bce_weight))
