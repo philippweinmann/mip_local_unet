@@ -27,9 +27,6 @@ from sklearn.model_selection import train_test_split
 from server_specific.server_utils import get_patients
 
 
-# In[ ]:
-
-
 patches_folder = Path("/home/tu-philw/group/gecko/pweinmann/mip_local_unet/preprocessed_patches/")
 def get_preprocessed_patches():
     patch_fps = list(patches_folder.iterdir())
@@ -49,14 +46,24 @@ def get_image_mask_from_patch_fp(patch_fp):
     return image, mask
 
 
-# In[ ]:
-
-
 preprocessed_patches = get_preprocessed_patches()
 
+def divide_in_train_test_split(preprocessed_patches):
+    idxs = {}
+    for preprocessed_path in preprocessed_patches:
+        idxs.add(preprocessed_path.split('_')[0])
+    
+    indexes_list = list(idxs)
+    train_idxs = indexes_list[0:740]
+    val_idxs = indexes_list[740:760]
+    test_idxs = indexes_list[740:800]
+    return train_idxs, val_idxs, test_idxs
 
-# In[ ]:
+train_idxs, val_idxs, test_idxs = divide_in_train_test_split(preprocessed_patches)
 
+print(train_idxs)
+print(val_idxs)
+print(test_idxs)
 
 # define which device is used for training
 device = get_best_device()

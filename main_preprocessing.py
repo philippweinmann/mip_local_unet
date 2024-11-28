@@ -11,6 +11,7 @@ training_voxel_spacing = [0.5,0.5,0.5]
 output_dir = Path("/home/tu-philw/group/gecko/pweinmann/mip_local_unet/preprocessed_patches/")
 output_dir_centered = Path("/home/tu-philw/group/gecko/pweinmann/mip_local_unet/preprocessed_patches_centered/")
 
+mean of means = -125.14
 
 clipping_min = -600
 clipping_max = 1000
@@ -31,15 +32,18 @@ def get_mean(patient):
     return image.mean()
 
 def get_mean_of_means(patients):
-    mean_of_means = []
+    means = []
     amt_patients = len(patients)
     for p_idx, patient in enumerate(patients):
         print(f"patient {p_idx} / {amt_patients}")
         current_mean = get_mean(patient)
         print(f"current_mean: {current_mean}")
-        mean_of_means.append(current_mean)
+        means.append(current_mean)
+    
+    mean_of_means = np.mean(means)
+    return mean_of_means
 
-get_mean_of_means(get_patients())
+print(f"mean of means: {get_mean_of_means(get_patients())}")
 
 # %%
 def save_patches_for_patient(patient):
