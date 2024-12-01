@@ -54,8 +54,8 @@ def train_loop(model, loss_fn, optimizer, patch_fps, epoch, local_run=False):
         
         dynamic_loss_weights = get_appropriate_dice_weight(amt_positive_voxels)
         
-        DICEBCE.dice_weight = dynamic_loss_weights[0]
-        DICEBCE.bce_weight = dynamic_loss_weights[1]
+        loss_fn.dice_weight = dynamic_loss_weights[0]
+        loss_fn.bce_weight = dynamic_loss_weights[1]
         
         # Set the learning rate in the optimizer
         for param_group in optimizer.param_groups:
@@ -98,7 +98,7 @@ optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
 epochs = 3
 
 # In[ ]:
-local_run = True
+local_run = False
 
 preprocessed_patches = get_preprocessed_patches(training_configuration.PATCHES_FOLDER, dummy=local_run)
 
