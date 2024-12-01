@@ -135,10 +135,11 @@ def dice_bce_loss(predictions, targets, weights = (1.0, 0.4)):
 
     return combination
 
-class DICEBCE:
+class DICEBCE(nn.Module):
     def __init__(self, dice_weight, bce_weight):
+        super().__init__()
         self.dice_weight = dice_weight
         self.bce_weight = bce_weight
     
-    def __call__(self, predictions, targets):
+    def forward(self, predictions: torch.Tensor, targets: torch.Tensor):
         return dice_bce_loss(predictions, targets, (self.dice_weight, self.bce_weight))
