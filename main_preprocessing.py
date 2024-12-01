@@ -11,7 +11,7 @@ training_voxel_spacing = [0.5,0.5,0.5]
 output_dir = Path("/home/tu-philw/group/gecko/pweinmann/mip_local_unet/preprocessed_patches/")
 output_dir_centered = Path("/home/tu-philw/group/gecko/pweinmann/mip_local_unet/preprocessed_patches_centered/")
 
-mean of means = -125.14
+mean of means = -125.14 # after voxel spacing fix and clipping
 
 clipping_min = -600
 clipping_max = 1000

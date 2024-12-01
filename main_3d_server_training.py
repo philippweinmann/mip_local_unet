@@ -34,7 +34,7 @@ def get_preprocessed_patches():
     patch_fps = [file for file in patch_fps if "ipynb_checkpoints" not in str(file)]
 
     print("amt of detected patch files: ", len(patch_fps))
-    random.shuffle(patch_fps)
+    random.Random(42).shuffle(patch_fps)
     
     return patch_fps
 
@@ -59,11 +59,11 @@ def divide_in_train_test_split(preprocessed_patches):
     test_idxs = indexes_list[740:800]
     return train_idxs, val_idxs, test_idxs
 
-train_idxs, val_idxs, test_idxs = divide_in_train_test_split(preprocessed_patches)
+# train_idxs, val_idxs, test_idxs = divide_in_train_test_split(preprocessed_patches)
 
-print(train_idxs)
-print(val_idxs)
-print(test_idxs)
+# print(train_idxs)
+# print(val_idxs)
+# print(test_idxs)
 
 # define which device is used for training
 device = get_best_device()
@@ -112,20 +112,24 @@ print("----------------TRAINING-------------")
 
 patch_size = training_configuration.PATCH_SIZE
 block_shape = (patch_size, patch_size, patch_size)
-dice_thresholds = np.array([0.1, 0.25, 0.5])
+# dice_thresholds = np.array([0.1, 0.25, 0.5])
 
-logging_frequency = 48
+logging_frequency = 100
+
+def print_logs_to_file(log_line):
+    with open("train_logs.txt", "a") as tl:
+        tl.write(log_line + "\n")
 
 def train_loop(model, loss_fn, optimizer, patch_fps, epoch):
     model.train()
     
     avg_train_loss = 0
-    avg_dice_scores = np.zeros(dice_thresholds.shape)
+    # avg_dice_scores = np.zeros(dice_thresholds.shape)
     
     processed_patch_counter = 0
     
-    combined_mask = []
-    combined_pred = []
+    # combined_mask = []
+    # combined_pred = []
     
     amt_of_patches = len(patch_fps)
     for patch_number, patch_fp in enumerate(patch_fps):
@@ -163,26 +167,28 @@ def train_loop(model, loss_fn, optimizer, patch_fps, epoch):
         patch_pred = prepare_image_for_analysis(patch_pred)
         patch_pred.astype(np.float16)
         
-        combined_mask.append(mask_patch)
-        combined_pred.append(patch_pred)
+        # combined_mask.append(mask_patch)
+        # combined_pred.append(patch_pred)
         
         if (patch_number + 1) % logging_frequency == 0:
             avg_train_loss /= logging_frequency
             
-            combined_mask_array = np.concatenate(combined_mask, axis=0)
-            combined_pred_array = np.concatenate(combined_pred, axis=0)
+            # combined_mask_array = np.concatenate(combined_mask, axis=0)
+            # combined_pred_array = np.concatenate(combined_pred, axis=0)
             
-            dice_scores = calculate_dice_scores(combined_mask_array, combined_pred_array, thresholds=dice_thresholds)
+            # dice_scores = calculate_dice_scores(combined_mask_array, combined_pred_array, thresholds=dice_thresholds)
             
-            formatted_scores = ', '.join([f'({t:.2f}, {s:.6f})' for t, s in zip(dice_thresholds, dice_scores)])
-            train_log = f"Patch number: {patch_number} / {amt_of_patches}, Train loss: {avg_train_loss:>8f}, Dice Scores: {formatted_scores}"
-            print(train_log)
+            # formatted_scores = ', '.join([f'({t:.2f}, {s:.6f})' for t, s in zip(dice_thresholds, dice_scores)])
+            # train_log = f"Patch number: {patch_number} / {amt_of_patches}, Train loss: {avg_train_loss:>8f}, Dice Scores: {formatted_scores}"
+            # print(train_log)
+            train_log = f"Patch number: {patch_number} / {amt_of_patches}, Train loss: {avg_train_loss:>8f}"
+            print_logs_to_file(train_log)
             
             # reset the scores again
-            combined_mask = []
-            combined_pred = []
+            # combined_mask = []
+            # combined_pred = []
             avg_train_loss = 0
-            avg_dice_scores.fill(0)
+            # avg_dice_scores.fill(0)
 
 
 # In[ ]:
@@ -202,18 +208,20 @@ epochs = 3
 
 
 # In[ ]:
+for epoch in range(epochs):
+    train_loop(model, loss_fn, optimizer, preprocessed_patches, epoch)
 
-
+'''
 try:
     for epoch in range(epochs):
         print(f"Epoch {epoch+1}\n-------------------------------")
 
-        train_loop(model, loss_fn, optimizer, preprocessed_patches, epoch)
+        
     print("Done!")
 except:
     print("this better have been a keyboard interrupt")
     model.eval()
-
+'''
 
 # In[ ]:
 
@@ -223,12 +231,7 @@ print("------INFERENCE--------")
 
 # In[ ]:
 
-
-debugging = False
-
-if not debugging:
-    save_model(model)
-
+save_model(model)
 
 # In[ ]:
 
