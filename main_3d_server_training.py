@@ -21,8 +21,6 @@ from models.net_utils import save_model, get_best_device, prepare_image_for_netw
 from models.unet3D import UNet3D, DICEBCE
 from training_utils import print_logs_to_file
 
-preprocessed_patches = get_preprocessed_patches(training_configuration.PATCHES_FOLDER)
-
 device = get_best_device()
 
 if device == "mps":
@@ -41,7 +39,7 @@ block_shape = (patch_size, patch_size, patch_size)
 
 logging_frequency = 100
 
-def train_loop(model, loss_fn, optimizer, patch_fps, epoch):
+def train_loop(model, loss_fn, optimizer, patch_fps, epoch, local_run=False):
     model.train()
     
     avg_train_loss = 0
@@ -49,7 +47,7 @@ def train_loop(model, loss_fn, optimizer, patch_fps, epoch):
     amt_of_patches = len(patch_fps)
     for patch_number, patch_fp in enumerate(patch_fps):
         print(f"{patch_number} / {amt_of_patches}", end="\r")
-        image_patch, mask_patch = get_image_mask_from_patch_fp(patch_fp)
+        image_patch, mask_patch = get_image_mask_from_patch_fp(patch_fp, dummy=local_run)
         
         amt_positive_voxels = np.count_nonzero(mask_patch)
         dynamic_lr = calculate_learning_rate(amt_positive_voxels, epoch)
@@ -100,8 +98,13 @@ optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
 epochs = 3
 
 # In[ ]:
+local_run = True
+
+preprocessed_patches = get_preprocessed_patches(training_configuration.PATCHES_FOLDER, dummy=local_run)
+
+
 for epoch in range(epochs):
-    train_loop(model, loss_fn, optimizer, preprocessed_patches, epoch)
+    train_loop(model, loss_fn, optimizer, preprocessed_patches, epoch, local_run=local_run)
 
 '''
 try:

@@ -1,0 +1,3 @@
+Patch number: 99 / 100, Train loss: 1.333268
+Patch number: 99 / 100, Train loss: 1.333150
+Patch number: 99 / 100, Train loss: 1.333139

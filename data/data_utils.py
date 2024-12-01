@@ -164,7 +164,14 @@ def calculate_voxel_intensities_of_patches(patients, block_shape = (64, 64, 64))
     return total_counts_patch_with_coronary_arteries, total_counts_patch_without_coronary_arteries, bin_edges
 
 
-def get_preprocessed_patches(patches_folder):
+def get_preprocessed_patches(patches_folder, dummy=False):
+    if dummy:
+        print("warning: Using dummy data!")
+        # they're not even real patches, should fail if used as such
+        dummy_fps = np.arange(0, 100)
+
+        return dummy_fps
+
     patch_fps = list(patches_folder.iterdir())
 
     patch_fps = [file for file in patch_fps if "ipynb_checkpoints" not in str(file)]
@@ -176,7 +183,15 @@ def get_preprocessed_patches(patches_folder):
     return patch_fps
 
 
-def get_image_mask_from_patch_fp(patch_fp):
+def get_image_mask_from_patch_fp(patch_fp, dummy=False):
+    # dummy is only to be used for local testing
+    if dummy:
+        print("warning: Using dummy data!")
+        image = np.zeros((128, 128, 128))
+        mask = np.zeros((128, 128, 128)).astype(np.bool_)
+
+        return image, mask
+
     patch = np.load(patch_fp)
     image = patch["image"]
     mask = patch["mask"].astype(np.bool_)
