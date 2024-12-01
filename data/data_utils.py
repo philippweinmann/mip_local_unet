@@ -3,6 +3,7 @@ import numpy as np
 from skimage.util import view_as_blocks
 from scipy.ndimage import zoom
 import nibabel as nib
+import random
 
 target_voxel_spacing = [0.5, 0.5, 0.5]
 
@@ -11,7 +12,6 @@ def get_voxel_spacing(image_fp):
     (img_x_dim_spacing, img_y_dim_spacing, img_z_dim_spacing) = image.header.get_zooms()[:3]
     
     return [img_x_dim_spacing, img_y_dim_spacing, img_z_dim_spacing]
-
 
 def resample_image(image, original_spacing, target_spacing = target_voxel_spacing):
     zoom_factors = [original_spacing[i] / target_spacing[i] for i in range(3)]
@@ -162,3 +162,23 @@ def calculate_voxel_intensities_of_patches(patients, block_shape = (64, 64, 64))
                         total_counts_patch_without_coronary_arteries += counts
         
     return total_counts_patch_with_coronary_arteries, total_counts_patch_without_coronary_arteries, bin_edges
+
+
+def get_preprocessed_patches(patches_folder):
+    patch_fps = list(patches_folder.iterdir())
+
+    patch_fps = [file for file in patch_fps if "ipynb_checkpoints" not in str(file)]
+
+    print("amt of detected patch files: ", len(patch_fps))
+    # setting random seed for reproducibility
+    random.Random(42).shuffle(patch_fps)
+
+    return patch_fps
+
+
+def get_image_mask_from_patch_fp(patch_fp):
+    patch = np.load(patch_fp)
+    image = patch["image"]
+    mask = patch["mask"].astype(np.bool_)
+
+    return image, mask

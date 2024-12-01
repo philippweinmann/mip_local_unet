@@ -110,3 +110,25 @@ def save_model(model):
     # saving the model
     torch.save(model.state_dict(), model_save_path)
     print(f"model saved at: {model_save_path}")
+
+max_dice_threshold = 20000
+total_weight = 1.5
+min_bce_weight = 0.2
+
+def get_appropriate_dice_weight(amt_positive_voxels):
+    bce_weight = (-(total_weight - min_bce_weight)/max_dice_threshold) * amt_positive_voxels + 1.5
+    dice_weight = total_weight - bce_weight
+
+    return dice_weight, bce_weight
+
+
+pos_voxel_threshold = 7000
+max_lr_threshold = 0.1
+
+def calculate_learning_rate(amt_positive_voxels, epoch):
+    # make the dice loss an exponential function. 0.0001 if there are no pos voxels, 0.1 if above pos_voxel_threshold
+    lr = 10 ** -(epoch) * 0.00001 * np.exp(amt_positive_voxels * (3*np.log(10)/pos_voxel_threshold))
+    lr = min(lr, max_lr_threshold)
+
+    # print(f"learning rate: {lr}, amt_positive_voxels: {amt_positive_voxels}")
+    return lr
