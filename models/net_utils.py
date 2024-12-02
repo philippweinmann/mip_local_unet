@@ -90,6 +90,27 @@ def calculate_hausdorff_distance(masks, images):
     score = directed_hausdorff(masks, images)
     return score
 
+def calculate_overlap(masks, images, thresholds):
+    scores = []
+    
+    flattened_masks = masks.flatten()
+    flattened_images = images.flatten()
+    
+    for threshold in thresholds:
+        binary_masks, binary_images = get_binary_data(flattened_masks, flattened_images, threshold)
+        
+        mask_count = np.sum(binary_masks)
+        
+        # Calculate overlap
+        overlap = np.logical_and(binary_masks, binary_images)
+
+        # Count the number of overlapping pixels
+        overlap_count = np.sum(overlap)
+        normalized_overlap = overlap_count / mask_count if mask_count > 0 else 0
+        
+        scores.append(normalized_overlap)
+        
+    return scores
 
 def get_best_device():
     if torch.cuda.is_available():
