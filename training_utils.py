@@ -33,7 +33,7 @@ def get_val_test_indexes():
     return val_idxs, test_idxs
 
 
-def get_train_test_val_patches(patches_folder, dummy):
+def get_train_test_val_patches(patches_folder, dummy = False):
     preprocessed_patches = get_preprocessed_patches(patches_folder, dummy=dummy)
 
     if dummy:
@@ -47,4 +47,3 @@ def get_train_test_val_patches(patches_folder, dummy):
         preprocessed_patches.remove(patch)
 
     return preprocessed_patches, val_idxs_patches, test_idxs_patches
-    
