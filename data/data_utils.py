@@ -197,3 +197,4 @@ def get_image_mask_from_patch_fp(patch_fp, dummy=False):
     mask = patch["mask"].astype(np.bool_)
 
     return image, mask
+
