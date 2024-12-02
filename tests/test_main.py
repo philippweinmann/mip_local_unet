@@ -1,7 +1,7 @@
 import unittest
 from models.unet3D import UNet3D, dice_bce_loss, softdiceloss
-from models.net_utils import get_best_device, prepare_image_for_network_input, prepare_image_for_analysis
-import torch
+from models.net_utils import get_best_device, prepare_image_for_network_input, calculate_learning_rate
+
 import numpy as np
 
 class TestModelFunctions(unittest.TestCase):
@@ -69,6 +69,22 @@ class TestModelFunctions(unittest.TestCase):
 
         loss = dice_bce_loss(predictions=self.half_empty_input, targets=self.full_input, weights=weights)
         self.assertTrue(loss, 0.5)
+
+    def test_dynamic_lr(self):
+        epoch = 0
+        amt_positive_voxels = 0
+        lr = calculate_learning_rate(amt_positive_voxels, epoch)
+        assert lr == 0.00001
+
+        epoch = 0
+        amt_positive_voxels = 7000
+        lr = calculate_learning_rate(amt_positive_voxels, epoch)
+        assert lr - 0.01 <= 0.000000000001
+
+        epoch = 0
+        amt_positive_voxels = 200000
+        lr = calculate_learning_rate(amt_positive_voxels, epoch)
+        print(lr)
 
 if __name__ == '__main__':
     unittest.main()
