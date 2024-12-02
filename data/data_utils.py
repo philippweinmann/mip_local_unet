@@ -117,6 +117,8 @@ def combine_preprocessed_patches(patches, model = None):
     image, _ = get_image_mask_from_patch_fp(patches[0])
     patch_size = image.shape[0]
     
+    del image
+
     xs = []
     ys = []
     zs = []
@@ -154,16 +156,16 @@ def combine_preprocessed_patches(patches, model = None):
         for j in range(max_y + 1):
             for k in range(max_z + 1):
                 current_patch = patch_map[(i, j, k)]
-                _, mask = get_image_mask_from_patch_fp(current_patch)
+                current_image_patch, current_mask_patch = get_image_mask_from_patch_fp(current_patch)
 
                 reconstructed_mask[
                     i * patch_size:(i + 1) * patch_size,
                     j * patch_size:(j + 1) * patch_size,
                     k * patch_size:(k + 1) * patch_size
-                ] = mask
+                ] = current_mask_patch
 
                 if model is not None:
-                    current_image_patch = prepare_image_for_network_input(image)
+                    current_image_patch = prepare_image_for_network_input(current_image_patch)
                     with torch.no_grad():
                         current_prediction_patch = model(current_image_patch)
                         current_prediction_patch = prepare_image_for_analysis(current_prediction_patch)
