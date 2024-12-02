@@ -91,6 +91,82 @@ def combine_patches_into_3d_image(patches):
     print(reconstructed_image.shape)
 
     return reconstructed_image
+
+def get_all_patches_with_certain_idx(ids, preprocessed_patches):
+    '''
+    returns a list of lists, each list has all the patches that have the same id as an item in ids.
+    meant to be used to get validation or test sets.
+    '''
+    
+    idx_patches = [[] for _ in range(len(ids))]
+    
+    for preprocessed_patch in preprocessed_patches:
+        current_patch_index = get_idx_from_patch_fp(preprocessed_patch)
+        
+        for counter, id in enumerate(ids):
+            if current_patch_index == id:
+                idx_patches[counter].append(preprocessed_patch)
+                break
+
+    return idx_patches
+
+def combine_preprocessed_patches(patches):
+    # we assume all patches have the same shape and are isomorphic cubes
+    image, _ = get_image_mask_from_patch_fp(patches[0])
+    patch_size = image.shape[0]
+    
+    xs = []
+    ys = []
+    zs = []
+    
+    patch_map = {}
+
+    for patch_fp in patches:
+        x, y, z = get_patch_coordinates_from_patch_fp(patch_fp)
+        x = int(x)
+        y = int(y)
+        z = int(z)                                    
+        
+        patch_map[(x, y, z)] = patch_fp
+        xs.append(x)
+        ys.append(y)
+        zs.append(z)
+        
+    max_x = np.array(xs).max()
+    max_y = np.array(ys).max()
+    max_z = np.array(zs).max()
+    
+    reconstructed_image = np.zeros((patch_size * (max_x + 1),
+                            patch_size * (max_y + 1),
+                            patch_size * (max_z + 1)))
+    
+    reconstructed_mask = np.zeros((patch_size * (max_x + 1),
+                            patch_size * (max_y + 1),
+                            patch_size * (max_z + 1)))
+    
+    for i in range(max_x + 1):
+        for j in range(max_y + 1):
+            for k in range(max_z + 1):
+                current_patch = patch_map[(i, j, k)]
+                image, mask = get_image_mask_from_patch_fp(current_patch)
+                
+                reconstructed_image[
+                    i * patch_size:(i + 1) * patch_size,
+                    j * patch_size:(j + 1) * patch_size,
+                    k * patch_size:(k + 1) * patch_size
+                ] = image
+                
+                reconstructed_mask[
+                    i * patch_size:(i + 1) * patch_size,
+                    j * patch_size:(j + 1) * patch_size,
+                    k * patch_size:(k + 1) * patch_size
+                ] = mask
+
+    # Verify if the reconstructed image matches the original dimensions
+    print(reconstructed_image.shape)
+    print(reconstructed_mask.shape)
+    
+    return reconstructed_image, reconstructed_mask
 # %%
 def get_padded_patches(image, mask, patch_size):
     block_shape = (patch_size, patch_size, patch_size)
