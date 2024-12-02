@@ -151,7 +151,7 @@ max_lr_threshold = 0.1
 def calculate_learning_rate(amt_positive_voxels, epoch):
     # make the dice loss an exponential function. 0.0001 if there are no pos voxels, 0.1 if above pos_voxel_threshold
     lr = 10 ** -(epoch) * 0.0001 * np.exp(amt_positive_voxels * (3*np.log(10)/pos_voxel_threshold))
-    lr = min(lr, max_lr_threshold)
+    lr =  min(lr, 10 ** -(epoch) * max_lr_threshold)
 
     # print(f"learning rate: {lr}, amt_positive_voxels: {amt_positive_voxels}")
     return lr
