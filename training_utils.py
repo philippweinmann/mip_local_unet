@@ -16,14 +16,14 @@ def get_val_test_indexes():
     test_idxs = []
 
     counter = 0
-    while counter <= training_configuration.AMT_VAL_PATIENTS:
+    while counter < training_configuration.AMT_VAL_PATIENTS:
         current_idx = patients[counter].idx
         val_idxs.append(current_idx)
         counter += 1
 
     counter = 0
-    while counter <= training_configuration.AMT_TEST_PATIENTS:
-        current_idx = patients[training_configuration.AMT_VAL_PATIENTS + counter].idx
+    while counter < training_configuration.AMT_TEST_PATIENTS:
+        current_idx = patients[training_configuration.AMT_VAL_PATIENTS + counter + 1].idx
         test_idxs.append(current_idx)
         counter += 1
 
@@ -43,7 +43,9 @@ def get_train_test_val_patches(patches_folder, dummy = False):
     test_idxs_patches = get_all_patches_with_certain_idx(test_idxs, preprocessed_patches)
     val_idxs_patches = get_all_patches_with_certain_idx(val_idxs, preprocessed_patches)
 
-    for patch in test_idxs_patches + val_idxs_patches:
-        preprocessed_patches.remove(patch)
+    for idx_patches in test_idxs_patches + val_idxs_patches:
+        for patch in idx_patches:
+            # print(patch)
+            preprocessed_patches.remove(patch)
 
     return preprocessed_patches, val_idxs_patches, test_idxs_patches

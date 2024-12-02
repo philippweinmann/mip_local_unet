@@ -20,7 +20,7 @@ from models.net_utils import save_model, get_best_device, prepare_image_for_netw
 
 from models.unet3D import UNet3D, DICEBCE
 
-local_run = True
+local_run = False
 if local_run:
     print("warning: running locally")
 
