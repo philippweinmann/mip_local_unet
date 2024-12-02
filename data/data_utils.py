@@ -5,6 +5,8 @@ from scipy.ndimage import zoom
 import nibabel as nib
 import random
 import os
+import torch
+from models.net_utils import prepare_image_for_network_input, prepare_image_for_analysis
 
 target_voxel_spacing = [0.5, 0.5, 0.5]
 
@@ -110,7 +112,7 @@ def get_all_patches_with_certain_idx(ids, preprocessed_patches):
 
     return idx_patches
 
-def combine_preprocessed_patches(patches):
+def combine_preprocessed_patches(patches, model = None):
     # we assume all patches have the same shape and are isomorphic cubes
     image, _ = get_image_mask_from_patch_fp(patches[0])
     patch_size = image.shape[0]
@@ -136,37 +138,46 @@ def combine_preprocessed_patches(patches):
     max_y = np.array(ys).max()
     max_z = np.array(zs).max()
     
-    reconstructed_image = np.zeros((patch_size * (max_x + 1),
-                            patch_size * (max_y + 1),
-                            patch_size * (max_z + 1)))
-    
+    # there is no need to reconstruct the image
     reconstructed_mask = np.zeros((patch_size * (max_x + 1),
                             patch_size * (max_y + 1),
                             patch_size * (max_z + 1)))
+    
+    if model is not None:
+        reconstructed_prediction = np.zeros((patch_size * (max_x + 1),
+                                patch_size * (max_y + 1),
+                                patch_size * (max_z + 1)))
+    else:
+        reconstructed_prediction = None
     
     for i in range(max_x + 1):
         for j in range(max_y + 1):
             for k in range(max_z + 1):
                 current_patch = patch_map[(i, j, k)]
-                image, mask = get_image_mask_from_patch_fp(current_patch)
-                
-                reconstructed_image[
-                    i * patch_size:(i + 1) * patch_size,
-                    j * patch_size:(j + 1) * patch_size,
-                    k * patch_size:(k + 1) * patch_size
-                ] = image
-                
+                _, mask = get_image_mask_from_patch_fp(current_patch)
+
                 reconstructed_mask[
                     i * patch_size:(i + 1) * patch_size,
                     j * patch_size:(j + 1) * patch_size,
                     k * patch_size:(k + 1) * patch_size
                 ] = mask
 
+                if model is not None:
+                    current_image_patch = prepare_image_for_network_input(image)
+                    with torch.no_grad():
+                        current_prediction_patch = model(current_image_patch)
+                        current_prediction_patch = prepare_image_for_analysis(current_prediction_patch)
+                    
+                    reconstructed_prediction[
+                        i * patch_size:(i + 1) * patch_size,
+                        j * patch_size:(j + 1) * patch_size,
+                        k * patch_size:(k + 1) * patch_size
+                    ] = current_prediction_patch
+
     # Verify if the reconstructed image matches the original dimensions
-    print(reconstructed_image.shape)
     print(reconstructed_mask.shape)
     
-    return reconstructed_image, reconstructed_mask
+    return reconstructed_mask, reconstructed_prediction
 # %%
 def get_padded_patches(image, mask, patch_size):
     block_shape = (patch_size, patch_size, patch_size)

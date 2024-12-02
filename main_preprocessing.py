@@ -11,7 +11,7 @@ training_voxel_spacing = [0.5,0.5,0.5]
 output_dir = Path("/home/tu-philw/group/gecko/pweinmann/mip_local_unet/preprocessed_patches/")
 output_dir_centered = Path("/home/tu-philw/group/gecko/pweinmann/mip_local_unet/preprocessed_patches_centered/")
 
-mean of means = -125.14 # after voxel spacing fix and clipping
+mean_of_means = -125.14 # after voxel spacing fix and clipping
 
 clipping_min = -600
 clipping_max = 1000
@@ -46,7 +46,7 @@ def get_mean_of_means(patients):
 print(f"mean of means: {get_mean_of_means(get_patients())}")
 
 # %%
-def save_patches_for_patient(patient):
+def save_patches_for_patient(patient, output_dir=output_dir):
     image = nib.load(patient.image_fp)
     mask = nib.load(patient.label_fp)
 
@@ -89,7 +89,7 @@ def preprocess_and_save_ccta_scans(patients, amt_patients = None, output_dir=out
     for p_idx, patient in enumerate(patients):
         print(f"processing patient: {p_idx} / {amt_patients}")
 
-        save_patches_for_patient(patient=patient)
+        save_patches_for_patient(patient=patient, output_dir=output_dir)
         counter += 1
 
         if counter > amt_patients:
