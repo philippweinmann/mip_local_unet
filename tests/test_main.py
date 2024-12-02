@@ -1,6 +1,6 @@
 import unittest
 from models.unet3D import UNet3D, dice_bce_loss, softdiceloss
-from models.net_utils import get_best_device, prepare_image_for_network_input, calculate_learning_rate
+from models.net_utils import get_best_device, prepare_image_for_network_input, calculate_learning_rate, get_appropriate_dice_weight
 
 import numpy as np
 
@@ -85,6 +85,22 @@ class TestModelFunctions(unittest.TestCase):
         amt_positive_voxels = 200000
         lr = calculate_learning_rate(amt_positive_voxels, epoch)
         assert lr - 0.1 <= 0.000000000001
+
+    def test_dynamic_loss_weights(self):
+        amt_positive_voxels = 0
+        dice_weight, bce_weight = get_appropriate_dice_weight(amt_positive_voxels)
+        assert dice_weight == 0
+        assert bce_weight == 1.5
+
+        amt_positive_voxels = 20000
+        dice_weight, bce_weight = get_appropriate_dice_weight(amt_positive_voxels)
+        assert dice_weight - 1.3 <= 0.000000001
+        assert bce_weight - 0.2 <= 0.000000001
+
+        amt_positive_voxels = 100000
+        dice_weight, bce_weight = get_appropriate_dice_weight(amt_positive_voxels)
+        assert dice_weight - 1.3 <= 0.000000001
+        assert bce_weight - 0.2 <= 0.000000001
 
 if __name__ == '__main__':
     unittest.main()
