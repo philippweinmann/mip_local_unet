@@ -92,7 +92,7 @@ class TestModelFunctions(unittest.TestCase):
         assert dice_weight == 0
         assert bce_weight == 1.5
 
-        amt_positive_voxels = 20000
+        amt_positive_voxels = 10000
         dice_weight, bce_weight = get_appropriate_dice_weight(amt_positive_voxels)
         assert dice_weight - 1.3 <= 0.000000001
         assert bce_weight - 0.2 <= 0.000000001

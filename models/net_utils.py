@@ -132,14 +132,14 @@ def save_model(model):
     torch.save(model.state_dict(), model_save_path)
     print(f"model saved at: {model_save_path}")
 
-max_dice_threshold = 20000
+max_dice_threshold = 10000
 total_weight = 1.5
 min_bce_weight = 0.2
 
 def get_appropriate_dice_weight(amt_positive_voxels):
     bce_weight = (-(total_weight - min_bce_weight)/max_dice_threshold) * amt_positive_voxels + 1.5
     bce_weight = max(bce_weight, min_bce_weight)
-    
+
     dice_weight = total_weight - bce_weight
 
     return dice_weight, bce_weight
