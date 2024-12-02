@@ -297,3 +297,7 @@ def get_patch_coordinates_from_patch_fp(patch_fp):
     file_name = os.path.basename(patch_fp).split('.')[0]
     x, y, z = file_name.split('_')[-3], file_name.split('_')[-2], file_name.split('_')[-1]
     return x, y, z
+
+
+# In[ ]:
+

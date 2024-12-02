@@ -1,3 +1,4 @@
+from data.data_utils import get_all_patches_with_certain_idx, get_preprocessed_patches
 from server_specific.server_utils import get_patients
 import training_configuration
 import random
@@ -30,4 +31,20 @@ def get_val_test_indexes():
     print(f"testing patients: {test_idxs}")
 
     return val_idxs, test_idxs
+
+
+def get_train_test_val_patches(patches_folder, dummy):
+    preprocessed_patches = get_preprocessed_patches(patches_folder, dummy=dummy)
+
+    if dummy:
+        return preprocessed_patches, preprocessed_patches[0:2], preprocessed_patches[2:4]
+
+    val_idxs, test_idxs = get_val_test_indexes()
+    test_idxs_patches = get_all_patches_with_certain_idx(test_idxs, preprocessed_patches)
+    val_idxs_patches = get_all_patches_with_certain_idx(val_idxs, preprocessed_patches)
+
+    for patch in test_idxs_patches + val_idxs_patches:
+        preprocessed_patches.remove(patch)
+
+    return preprocessed_patches, val_idxs_patches, test_idxs_patches
     

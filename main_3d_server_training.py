@@ -10,8 +10,8 @@ import torch.nn as nn
 import numpy as np
 
 from pathlib import Path
-from data.data_utils import get_preprocessed_patches
 from data.data_utils import get_image_mask_from_patch_fp
+from training_utils import get_train_test_val_patches
 from models.net_utils import get_appropriate_dice_weight
 from models.net_utils import calculate_learning_rate
 import training_configuration
@@ -19,7 +19,13 @@ import training_configuration
 from models.net_utils import save_model, get_best_device, prepare_image_for_network_input, prepare_image_for_analysis
 
 from models.unet3D import UNet3D, DICEBCE
-from training_utils import print_logs_to_file
+
+local_run = True
+if local_run:
+    print("warning: running locally")
+
+if not local_run:
+    from training_utils import get_val_test_indexes, print_logs_to_file
 
 device = get_best_device()
 
@@ -78,7 +84,9 @@ def train_loop(model, loss_fn, optimizer, patch_fps, epoch, local_run=False):
             avg_train_loss /= logging_frequency
 
             train_log = f"Patch number: {patch_number} / {amt_of_patches}, Train loss: {avg_train_loss:>8f}"
-            print_logs_to_file(train_log)
+
+            if not local_run:
+                print_logs_to_file(train_log)
             avg_train_loss = 0
 
 
@@ -97,10 +105,8 @@ optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
 
 epochs = 3
 
-# In[ ]:
-local_run = False
-
-preprocessed_patches = get_preprocessed_patches(training_configuration.PATCHES_FOLDER, dummy=local_run)
+preprocessed_patches, val_idxs_patches, test_idxs_patches = get_train_test_val_patches(training_configuration.PATCHES_FOLDER, dummy=local_run)
+# remove the val and test indexes from the preprocessed patches
 
 
 for epoch in range(epochs):
