@@ -74,17 +74,17 @@ class TestModelFunctions(unittest.TestCase):
         epoch = 0
         amt_positive_voxels = 0
         lr = calculate_learning_rate(amt_positive_voxels, epoch)
-        assert lr == 0.00001
+        assert lr == 0.0001
 
         epoch = 0
         amt_positive_voxels = 7000
         lr = calculate_learning_rate(amt_positive_voxels, epoch)
-        assert lr - 0.01 <= 0.000000000001
+        assert lr - 0.1 <= 0.000000000001
 
         epoch = 0
         amt_positive_voxels = 200000
         lr = calculate_learning_rate(amt_positive_voxels, epoch)
-        print(lr)
+        assert lr - 0.1 <= 0.000000000001
 
 if __name__ == '__main__':
     unittest.main()
