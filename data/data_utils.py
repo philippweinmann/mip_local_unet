@@ -4,6 +4,7 @@ from skimage.util import view_as_blocks
 from scipy.ndimage import zoom
 import nibabel as nib
 import random
+import os
 
 target_voxel_spacing = [0.5, 0.5, 0.5]
 
@@ -198,3 +199,12 @@ def get_image_mask_from_patch_fp(patch_fp, dummy=False):
 
     return image, mask
 
+def get_idx_from_patch_fp(patch_fp):
+    file_name = os.path.basename(patch_fp).split('.')[0]
+    idx = file_name.split("_")[0]
+    return idx
+
+def get_patch_coordinates_from_patch_fp(patch_fp):
+    file_name = os.path.basename(patch_fp).split('.')[0]
+    x, y, z = file_name.split('_')[-3], file_name.split('_')[-2], file_name.split('_')[-1]
+    return x, y, z
