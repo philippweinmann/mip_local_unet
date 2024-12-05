@@ -127,8 +127,7 @@ def dice_bce_loss(predictions, targets, weights = (1.0, 0.4)):
     
     soft_dice_loss = softdiceloss(predictions, targets)
 
-    # TODO Ask dominik about this, why do the ai overlords say this is wrong.
-    bce_loss = nn.BCELoss()(predictions, targets) / 20
+    bce_loss = nn.BCELoss()(predictions, targets)
     # short circuiting to check what happens
     # bce_loss = 0
     
