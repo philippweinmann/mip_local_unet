@@ -132,7 +132,7 @@ def save_model(model):
     torch.save(model.state_dict(), model_save_path)
     print(f"model saved at: {model_save_path}")
 
-max_dice_threshold = 10000
+max_dice_threshold = 20000
 total_weight = 1.5
 min_bce_weight = 0.2
 

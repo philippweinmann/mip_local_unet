@@ -11,7 +11,7 @@ import numpy as np
 
 from pathlib import Path
 from data.data_utils import get_image_mask_from_patch_fp
-from training_utils import get_train_test_val_patches
+from training_utils import get_train_test_val_patches, test_or_validate_model
 from models.net_utils import get_appropriate_dice_weight
 from models.net_utils import calculate_learning_rate
 import training_configuration
@@ -43,7 +43,18 @@ patch_size = training_configuration.PATCH_SIZE
 block_shape = (patch_size, patch_size, patch_size)
 # dice_thresholds = np.array([0.1, 0.25, 0.5])
 
+
+preprocessed_patches, val_idxs_patches, test_idxs_patches = get_train_test_val_patches(training_configuration.PATCHES_FOLDER, dummy=local_run)
+
+def validation_loop(model):
+    model.eval()
+    avg_overlap_scores, avg_dice_scores = test_or_validate_model(val_idxs_patches, model)
+    # don't forget to set model to training mode again.
+    
+    return avg_overlap_scores, avg_dice_scores
+
 logging_frequency = 100
+val_logging_frequency = 3000
 
 def train_loop(model, loss_fn, optimizer, patch_fps, epoch, local_run=False):
     model.train()
@@ -88,8 +99,16 @@ def train_loop(model, loss_fn, optimizer, patch_fps, epoch, local_run=False):
             if not local_run:
                 print_logs_to_file(train_log)
             avg_train_loss = 0
-
-
+        
+        # yes I know it will start at patch 0, that is fine
+        if patch_number % val_logging_frequency == 0:
+            avg_overlap_scores, avg_dice_scores = validation_loop(model)
+            validation_log = f"avg_overlap_scores: {avg_overlap_scores}\navg_dice_scores: {avg_dice_scores}"
+            print(validation_log)
+                  
+            print_logs_to_file(validation_log)
+            
+            model.train()
 
 # In[ ]:
 
@@ -104,8 +123,6 @@ loss_fn = DICEBCE(1,0.5)
 optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
 
 epochs = 3
-
-preprocessed_patches, val_idxs_patches, test_idxs_patches = get_train_test_val_patches(training_configuration.PATCHES_FOLDER, dummy=local_run)
 # remove the val and test indexes from the preprocessed patches
 
 
