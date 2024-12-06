@@ -101,7 +101,7 @@ def train_loop(model, loss_fn, optimizer, patch_fps, epoch, local_run=False):
             avg_train_loss = 0
         
         # yes I know it will start at patch 0, that is fine
-        if patch_number % val_logging_frequency == 0:
+        if (patch_number + 1) % val_logging_frequency == 0:
             avg_overlap_scores, avg_dice_scores = validation_loop(model)
             validation_log = f"avg_overlap_scores: {avg_overlap_scores}\navg_dice_scores: {avg_dice_scores}"
             print(validation_log)
@@ -122,8 +122,7 @@ loss_fn = DICEBCE(1,0.5)
 # the lr does not matter here, it is set depending on the amt of positive voxels
 optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
 
-epochs = 3
-# remove the val and test indexes from the preprocessed patches
+epochs = 10
 
 
 for epoch in range(epochs):
