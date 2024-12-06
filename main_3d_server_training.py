@@ -8,6 +8,7 @@ import copy
 import torch
 import torch.nn as nn
 import numpy as np
+import time
 
 from pathlib import Path
 from data.data_utils import get_image_mask_from_patch_fp
@@ -43,8 +44,18 @@ patch_size = training_configuration.PATCH_SIZE
 block_shape = (patch_size, patch_size, patch_size)
 # dice_thresholds = np.array([0.1, 0.25, 0.5])
 
-
 preprocessed_patches, val_idxs_patches, test_idxs_patches = get_train_test_val_patches(training_configuration.PATCHES_FOLDER, dummy=local_run)
+
+timestr = time.strftime("%Y%m%d-%H%M%S")
+training_config = {
+    "base_lr": 0.1, # doesn't matter, its calculated dynamically
+    "epochs": 3,
+    "lr_pos_voxel_threshold": 7000,
+    "max_dice_threshold_wf_loss": 20000,
+}
+
+print_logs_to_file(str(training_config), file_name = timestr)
+
 
 def validation_loop(model):
     model.eval()
@@ -54,9 +65,9 @@ def validation_loop(model):
     return avg_overlap_scores, avg_dice_scores
 
 logging_frequency = 100
-val_logging_frequency = 3000
+val_logging_frequency = 6000
 
-def train_loop(model, loss_fn, optimizer, patch_fps, epoch, local_run=False):
+def train_loop(model, loss_fn, optimizer, patch_fps, epoch, local_run=False, timestr=None):
     model.train()
     
     avg_train_loss = 0
@@ -67,9 +78,9 @@ def train_loop(model, loss_fn, optimizer, patch_fps, epoch, local_run=False):
         image_patch, mask_patch = get_image_mask_from_patch_fp(patch_fp, dummy=local_run)
         
         amt_positive_voxels = np.count_nonzero(mask_patch)
-        dynamic_lr = calculate_learning_rate(amt_positive_voxels, epoch)
+        dynamic_lr = calculate_learning_rate(amt_positive_voxels, epoch, pos_voxel_threshold = training_config["lr_pos_voxel_threshold"])
         
-        dynamic_loss_weights = get_appropriate_dice_weight(amt_positive_voxels)
+        dynamic_loss_weights = get_appropriate_dice_weight(amt_positive_voxels, max_dice_threshold = training_config["max_dice_threshold_wf_loss"])
         
         loss_fn.dice_weight = dynamic_loss_weights[0]
         loss_fn.bce_weight = dynamic_loss_weights[1]
@@ -97,7 +108,7 @@ def train_loop(model, loss_fn, optimizer, patch_fps, epoch, local_run=False):
             train_log = f"Patch number: {patch_number} / {amt_of_patches}, Train loss: {avg_train_loss:>8f}"
 
             if not local_run:
-                print_logs_to_file(train_log)
+                print_logs_to_file(train_log, file_name = timestr)
             avg_train_loss = 0
         
         # yes I know it will start at patch 0, that is fine
@@ -106,7 +117,7 @@ def train_loop(model, loss_fn, optimizer, patch_fps, epoch, local_run=False):
             validation_log = f"avg_overlap_scores: {avg_overlap_scores}\navg_dice_scores: {avg_dice_scores}"
             print(validation_log)
                   
-            print_logs_to_file(validation_log)
+            print_logs_to_file(validation_log, file_name = timestr)
             
             model.train()
 
@@ -117,17 +128,18 @@ model = UNet3D(in_channels=1, num_classes=1)
 model.to(device)
 
 # running it
-loss_fn = DICEBCE(1,0.5)
+loss_fn = DICEBCE(1,0.5) # the base weights don't matter, they're set dynamically
 
 # the lr does not matter here, it is set depending on the amt of positive voxels
-optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
+optimizer = torch.optim.SGD(model.parameters(), lr=training_config["base_lr"])
 
-epochs = 10
-
+epochs = training_config["epochs"]
 
 for epoch in range(epochs):
-    train_loop(model, loss_fn, optimizer, preprocessed_patches, epoch, local_run=local_run)
-
+    epoch_log = f"epoch: {epoch} / {epochs}"
+    print_logs_to_file(epoch_log, file_name = timestr)
+    train_loop(model, loss_fn, optimizer, preprocessed_patches, epoch, local_run=local_run, timestr=timestr)
+    
 '''
 try:
     for epoch in range(epochs):
@@ -146,6 +158,6 @@ print("------INFERENCE--------")
 
 # In[ ]:
 
-save_model(model)
+save_model(model, timestr)
 
 # In[ ]:

@@ -6,8 +6,8 @@ import training_configuration
 import random
 
 
-def print_logs_to_file(log_line, file_name="train_logs5.txt"):
-    file_path = training_configuration.TRAINING_LOGS_FOLDER / file_name
+def print_logs_to_file(log_line, file_name=None):
+    file_path = training_configuration.TRAINING_LOGS_FOLDER / (file_name + ".txt")
     with open(file_path, "a") as tl:
         tl.write(log_line + "\n")
 
