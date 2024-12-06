@@ -8,7 +8,7 @@ import random
 
 def print_logs_to_file(log_line, file_name="train_logs5.txt"):
     file_path = training_configuration.TRAINING_LOGS_FOLDER / file_name
-    with open(file_name, "a") as tl:
+    with open(file_path, "a") as tl:
         tl.write(log_line + "\n")
 
 def get_val_test_indexes():
