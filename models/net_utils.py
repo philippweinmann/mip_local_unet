@@ -135,13 +135,15 @@ def save_model(model):
 max_dice_threshold = 20000
 total_weight = 1.5
 min_bce_weight = 0.01
-bce_divisor = 20
+bce_divisor = 50
 
 def get_appropriate_dice_weight(amt_positive_voxels):
-    bce_weight = ((-(total_weight - min_bce_weight)/max_dice_threshold) * amt_positive_voxels) / bce_divisor + 1.5
-    bce_weight = max(bce_weight, min_bce_weight) 
+    bce_weight = ((-(total_weight - min_bce_weight)/max_dice_threshold) * amt_positive_voxels) + 1.5
+    bce_weight = max(bce_weight, min_bce_weight)
 
     dice_weight = total_weight - bce_weight
+    
+    bce_weight /= bce_divisor
 
     return dice_weight, bce_weight
 
