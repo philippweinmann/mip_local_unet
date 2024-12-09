@@ -11,6 +11,7 @@ def visualize3Dimage(image):
     the 1s are plotted, the zeroes not.
     requires binary images
     '''
+    # WARNING: this function can only handle binary data!
     x, y, z = np.where(image == 1)
 
     fig = plt.figure()
@@ -28,6 +29,43 @@ def visualize3Dimage(image):
     ax.set_ylim([0, image.shape[1]])
     ax.set_zlim([0, image.shape[2]])
     
+    plt.show()
+    
+def visualize3Dimageandmask(image, mask):
+    '''
+    the 1s are plotted, the zeroes not.
+    requires binary images
+    '''
+    # WARNING: this function can only handle binary data!
+    x_img, y_img, z_img = np.where(image == 1)
+    x_mask, y_mask, z_mask = np.where(mask == 1)
+
+    fig = plt.figure(figsize=(12, 6))
+
+    # Plot the result
+    ax1 = fig.add_subplot(121, projection='3d')
+    ax1.scatter(x_img, y_img, z_img, c='red', marker='o')
+    ax1.set_title("Prediction")
+    ax1.set_xlabel('X')
+    ax1.set_ylabel('Y')
+    ax1.set_zlabel('Z')
+    ax1.set_xlim([0, image.shape[0]])
+    ax1.set_ylim([0, image.shape[1]])
+    ax1.set_zlim([0, image.shape[2]])
+
+    # Plot the mask
+    ax2 = fig.add_subplot(122, projection='3d')
+    ax2.scatter(x_mask, y_mask, z_mask, c='red', marker='o')
+    ax2.set_title("Mask")
+    ax2.set_xlabel('X')
+    ax2.set_ylabel('Y')
+    ax2.set_zlabel('Z')
+    ax2.set_xlim([0, mask.shape[0]])
+    ax2.set_ylim([0, mask.shape[1]])
+    ax2.set_zlim([0, mask.shape[2]])
+
+    # Show the plots
+    plt.tight_layout()
     plt.show()
 
 class ImageGenerator():
