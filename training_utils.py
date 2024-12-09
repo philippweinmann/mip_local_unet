@@ -1,9 +1,12 @@
 from data.data_utils import get_all_patches_with_certain_idx, get_preprocessed_patches, combine_preprocessed_patches
-from models.net_utils import calculate_overlap, calculate_dice_scores
+from models.net_utils import calculate_overlap, calculate_dice_scores, binarize_image_pp
 from server_specific.server_utils import get_patients
-from data_generation.generate_3d import visualize3Dimage
+from data_generation.generate_3d import visualize3Dimage, visualize3Dimageandmask
 import training_configuration
 import random
+from scipy.ndimage import label
+import numpy as np
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 
 def print_logs_to_file(log_line, file_name=None):
@@ -53,29 +56,56 @@ def get_train_test_val_patches(patches_folder, dummy = False):
 
     return preprocessed_patches, val_idxs_patches, test_idxs_patches
 
-def test_or_validate_model(train_or_val_patches_lists, model, visualize = False):
+def post_processing(prediction, threshold):
+    # let's binarize the prediction
+    prediction = binarize_image_pp(prediction, threshold = threshold)
+
+    # Label connected components
+    labeled_array, num_features = label(prediction)
+
+    # Use a histogram to efficiently calculate the sizes of each labeled component
+    component_sizes = np.bincount(labeled_array.ravel())
+
+    # Exclude the background component (label 0)
+    component_sizes[0] = 0
+
+    # Get the two largest component labels
+    largest_labels = np.argsort(component_sizes)[-2:]
+
+    # Create a mask for the two largest components
+    result_array = np.isin(labeled_array, largest_labels).astype(np.uint8)
+
+    return result_array
+
+
+def test_or_validate_model(train_or_val_patches_lists, model, threshold = 0.05, visualize = False):
+    
+    print(f"selected threshold: {threshold}")
+
     avg_dice_scores = 0
     avg_overlap_scores = 0
-    
+
     amt_patch_patients = len(train_or_val_patches_lists)
     for idx, train_or_val_patches_list in enumerate(train_or_val_patches_lists):
-        print(f"processing validation or test patient {idx} / {amt_patch_patients}")
-        
-        reconstructed_mask, reconstructed_prediction = combine_preprocessed_patches(train_or_val_patches_list, model)
+        print(f"processing validation or test patient {idx + 1} / {amt_patch_patients}")
 
+        reconstructed_mask, reconstructed_prediction = combine_preprocessed_patches(train_or_val_patches_list, model)
+        reconstructed_prediction = post_processing(reconstructed_prediction, threshold = threshold)
+        
+        # the thresholds here actually don't matter if we're binarizing before
         dice_scores = calculate_dice_scores(reconstructed_mask, reconstructed_prediction, thresholds = [0.5])
         overlap_scores = calculate_overlap(reconstructed_mask, reconstructed_prediction, thresholds = [0.5])
 
         avg_dice_scores += dice_scores[0]
         avg_overlap_scores += overlap_scores[0]
-        
+
         print(f"dice scores: {dice_scores}")
         print(f"overlap scores: {overlap_scores}")
-        
+
         if visualize:
-            visualize3Dimage(reconstructed_mask)
-            visualize3Dimage(reconstructed_prediction)
-    
+            reconstructed_prediction = binarize_image_pp(reconstructed_prediction)
+            visualize3Dimageandmask(reconstructed_prediction, reconstructed_mask)
+
     avg_overlap_scores /= amt_patch_patients
     avg_dice_scores /= amt_patch_patients
     

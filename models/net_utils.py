@@ -27,6 +27,7 @@ def dice_loss(pred, target, smooth=1.0):
 def prepare_image_for_network_input(image):
     image = image[None, None, :, :]
     t_image = torch.tensor(image, dtype=torch.float32)
+    t_image = t_image.to('cuda')
 
     return t_image
 
