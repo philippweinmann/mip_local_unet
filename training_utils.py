@@ -90,6 +90,7 @@ def test_or_validate_model(train_or_val_patches_lists, model, threshold = 0.05, 
         print(f"processing validation or test patient {idx + 1} / {amt_patch_patients}")
 
         reconstructed_mask, reconstructed_prediction = combine_preprocessed_patches(train_or_val_patches_list, model)
+        reconstructed_prediction_without_preprocessing = reconstructed_prediction.copy()
         reconstructed_prediction = post_processing(reconstructed_prediction, threshold = threshold)
         
         # the thresholds here actually don't matter if we're binarizing before
@@ -104,7 +105,9 @@ def test_or_validate_model(train_or_val_patches_lists, model, threshold = 0.05, 
 
         if visualize:
             reconstructed_prediction = binarize_image_pp(reconstructed_prediction)
+            reconstructed_prediction_without_preprocessing = binarize_image_pp(reconstructed_prediction_without_preprocessing)
             visualize3Dimageandmask(reconstructed_prediction, reconstructed_mask)
+            visualize3Dimage(reconstructed_prediction_without_preprocessing)
 
     avg_overlap_scores /= amt_patch_patients
     avg_dice_scores /= amt_patch_patients

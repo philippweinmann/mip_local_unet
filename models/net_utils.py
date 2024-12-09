@@ -147,10 +147,11 @@ def get_appropriate_dice_weight(amt_positive_voxels, max_dice_threshold):
 
 max_lr_threshold = 0.1
 
-def calculate_learning_rate(amt_positive_voxels, epoch, pos_voxel_threshold):
-    # make the dice loss an exponential function. 0.0001 if there are no pos voxels, 0.1 if above pos_voxel_threshold
-    lr = 10 ** -(epoch) * 0.0001 * np.exp(amt_positive_voxels * (3*np.log(10)/pos_voxel_threshold))
-    lr =  min(lr, 10 ** -(epoch) * max_lr_threshold)
+def calculate_learning_rate(amt_positive_voxels, epoch):
+    # make the dice loss a logarithmic function. 0.001 if there are no pos voxels, 0.1 if above pos_voxel_threshold
+    # lr = 10 ** -(epoch) * 0.0001 * np.exp(amt_positive_voxels * (3*np.log(10)/pos_voxel_threshold))
+    
+    lr = 10 ** -(epoch) * 0.03 * np.log10(amt_positive_voxels + 1.05)
 
     # print(f"learning rate: {lr}, amt_positive_voxels: {amt_positive_voxels}")
     return lr

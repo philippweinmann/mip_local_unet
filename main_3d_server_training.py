@@ -50,7 +50,6 @@ timestr = time.strftime("%Y%m%d-%H%M%S")
 training_config = {
     "base_lr": 0.1, # doesn't matter, its calculated dynamically
     "epochs": 3,
-    "lr_pos_voxel_threshold": 7000,
     "max_dice_threshold_wf_loss": 20000,
 }
 
@@ -78,7 +77,7 @@ def train_loop(model, loss_fn, optimizer, patch_fps, epoch, local_run=False, tim
         image_patch, mask_patch = get_image_mask_from_patch_fp(patch_fp, dummy=local_run)
         
         amt_positive_voxels = np.count_nonzero(mask_patch)
-        dynamic_lr = calculate_learning_rate(amt_positive_voxels, epoch, pos_voxel_threshold = training_config["lr_pos_voxel_threshold"])
+        dynamic_lr = calculate_learning_rate(amt_positive_voxels, epoch)
         
         dynamic_loss_weights = get_appropriate_dice_weight(amt_positive_voxels, max_dice_threshold = training_config["max_dice_threshold_wf_loss"])
         
@@ -135,22 +134,14 @@ optimizer = torch.optim.SGD(model.parameters(), lr=training_config["base_lr"])
 
 epochs = training_config["epochs"]
 
-for epoch in range(epochs):
-    epoch_log = f"epoch: {epoch} / {epochs}"
-    print_logs_to_file(epoch_log, file_name = timestr)
-    train_loop(model, loss_fn, optimizer, preprocessed_patches, epoch, local_run=local_run, timestr=timestr)
-    
-'''
 try:
     for epoch in range(epochs):
-        print(f"Epoch {epoch+1}\n-------------------------------")
-
-        
-    print("Done!")
+        epoch_log = f"epoch: {epoch} / {epochs}"
+        print_logs_to_file(epoch_log, file_name = timestr)
+        train_loop(model, loss_fn, optimizer, preprocessed_patches, epoch, local_run=local_run, timestr=timestr)
 except:
     print("this better have been a keyboard interrupt")
     model.eval()
-'''
 
 # In[ ]:
 
