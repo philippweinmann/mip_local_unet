@@ -49,8 +49,8 @@ preprocessed_patches, val_idxs_patches, test_idxs_patches = get_train_test_val_p
 timestr = time.strftime("%Y%m%d-%H%M%S")
 training_config = {
     "base_lr": 0.1, # doesn't matter, its calculated dynamically
-    "epochs": 3,
-    "max_dice_threshold_wf_loss": 20000,
+    "epochs": 10,
+    "max_dice_threshold_wf_loss": 22500,
 }
 
 print_logs_to_file(str(training_config), file_name = timestr)
@@ -134,14 +134,18 @@ optimizer = torch.optim.SGD(model.parameters(), lr=training_config["base_lr"])
 
 epochs = training_config["epochs"]
 
-try:
+if False:
     for epoch in range(epochs):
-        epoch_log = f"epoch: {epoch} / {epochs}"
-        print_logs_to_file(epoch_log, file_name = timestr)
         train_loop(model, loss_fn, optimizer, preprocessed_patches, epoch, local_run=local_run, timestr=timestr)
-except:
-    print("this better have been a keyboard interrupt")
-    model.eval()
+else:
+    try:
+        for epoch in range(epochs):
+            epoch_log = f"epoch: {epoch} / {epochs}"
+            print_logs_to_file(epoch_log, file_name = timestr)
+            train_loop(model, loss_fn, optimizer, preprocessed_patches, epoch, local_run=local_run, timestr=timestr)
+    except:
+        print("this better have been a keyboard interrupt")
+        model.eval()
 
 # In[ ]:
 
