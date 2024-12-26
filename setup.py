@@ -18,5 +18,6 @@ setup(name='mip_unet',
         "opencv_python_headless==4.10.0.84", 
         "scipy==1.14.1",
         "nibabel",
+        "optuna",
     ],
      )
