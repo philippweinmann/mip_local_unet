@@ -72,7 +72,7 @@ class UNet3D(nn.Module):
     def __init__(self, in_channels, num_classes):  
         super().__init__()
         first_out_channels = 16
-        self.down_convolution_1 = DownSample(in_channels, first_out_channels)  
+        self.down_convolution_1 = DownSample(in_channels, first_out_channels, use_norm = True)  
         self.down_convolution_2 = DownSample(first_out_channels, first_out_channels * 2, use_norm = True)  
         self.down_convolution_3 = DownSample(first_out_channels * 2, first_out_channels * 2 * 2, use_norm = True)  
         self.down_convolution_4 = DownSample(first_out_channels * 2 * 2, first_out_channels * 2 * 2 * 2, use_norm = True)

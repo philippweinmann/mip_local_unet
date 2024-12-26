@@ -58,10 +58,10 @@ print_logs_to_file(str(training_config), file_name = timestr)
 
 def validation_loop(model):
     model.eval()
-    avg_overlap_scores, avg_dice_scores = test_or_validate_model(val_idxs_patches, model)
+    avg_overlap_scores, avg_dice_scores, avg_dice_scores_bpp = test_or_validate_model(val_idxs_patches, model)
     # don't forget to set model to training mode again.
     
-    return avg_overlap_scores, avg_dice_scores
+    return avg_overlap_scores, avg_dice_scores_bpp
 
 logging_frequency = 100
 val_logging_frequency = 6000
