@@ -81,9 +81,9 @@ class ImageGenerator():
         images = []
         masks = []
         for _ in range(batch_size):
-            image3d = self.get_3DImage()
-            images.append(image3d.image[None, :, :])
-            masks.append(image3d.mask[None, :, :])
+            image3d, mask3d = self.get_3DImage()
+            images.append(image3d[None, :, :])
+            masks.append(mask3d[None, :, :])
 
         return np.array(images), np.array(masks)
 
