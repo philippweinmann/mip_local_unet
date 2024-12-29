@@ -2,8 +2,8 @@
 import numpy as np
 from matplotlib import pyplot as plt
 # %%
-def visualize_3d_matrices(images, titles, global_title = None, show_axis=True):
-    amt_images = len(images)
+def visualize_3d_matrices(matrices, titles, global_title = None, show_axis=True):
+    amt_images = len(matrices)
     if amt_images > 9:
         raise ValueError("Can only visualize up to 9 images at once.")
     
@@ -16,9 +16,9 @@ def visualize_3d_matrices(images, titles, global_title = None, show_axis=True):
         fig.suptitle(global_title)
 
     
-    for i, (im, title) in enumerate(zip(images, titles)):
+    for i, (matrix, title) in enumerate(zip(matrices, titles)):
         # Iterating over the grid returns the Axes.
-        x, y, z = np.where(im >= 0.5)
+        x, y, z = np.where(matrix >= 0.5)
         ax = fig.add_subplot(amt_rows, amt_cols, i + 1, projection='3d')
         ax.scatter(x, y, z, c='red', marker='o', s=0.5, alpha=0.2)
 
@@ -27,9 +27,9 @@ def visualize_3d_matrices(images, titles, global_title = None, show_axis=True):
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')
 
-        ax.set_xlim([0, im.shape[0]])
-        ax.set_ylim([0, im.shape[1]])
-        ax.set_zlim([0, im.shape[2]])
+        ax.set_xlim([0, matrix.shape[0]])
+        ax.set_ylim([0, matrix.shape[1]])
+        ax.set_zlim([0, matrix.shape[2]])
 
         if not show_axis:
             ax.axis('off')
