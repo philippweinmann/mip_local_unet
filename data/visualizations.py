@@ -1,36 +1,49 @@
+# %%
 import numpy as np
 from matplotlib import pyplot as plt
+# %%
+def visualize_3d_matrices(images, titles, global_title = None, show_axis=True):
+    amt_images = len(images)
+    if amt_images > 9:
+        raise ValueError("Can only visualize up to 9 images at once.")
+    
+    # we want a max of 3 columns.
+    amt_cols = min(3, amt_images)
+    amt_rows = int(np.ceil(amt_images / amt_cols))
 
-def display3DImageMaskTuple(image, mask, predicted_mask = None):
-    images_to_plot = [image, mask]
-    titles = ["image", "mask"]
+    fig = plt.figure()
+    if global_title:
+        fig.suptitle(global_title)
 
-    if predicted_mask is not None:
-        images_to_plot.append(predicted_mask)
-        titles.append("predicted mask")
-
-    fig = plt.figure(figsize=(10, 10))
-
-    for plt_idx, (image, title) in enumerate(zip(images_to_plot, titles)):
-        x, y, z = np.where(image >= 0.5)
-
-        ax = fig.add_subplot(1, 3, plt_idx + 1, projection='3d')
-
-        # Plot the '1's in the image
-        # modify alpha for transparency, s for size
+    
+    for i, (im, title) in enumerate(zip(images, titles)):
+        # Iterating over the grid returns the Axes.
+        x, y, z = np.where(im >= 0.5)
+        ax = fig.add_subplot(amt_rows, amt_cols, i + 1, projection='3d')
         ax.scatter(x, y, z, c='red', marker='o', s=0.5, alpha=0.2)
 
-        # Set labels and show the plot
+        # Set labels even if we don't show them
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')
 
-        ax.set_xlim([0, image.shape[0]])
-        ax.set_ylim([0, image.shape[1]])
-        ax.set_zlim([0, image.shape[2]])
+        ax.set_xlim([0, im.shape[0]])
+        ax.set_ylim([0, im.shape[1]])
+        ax.set_zlim([0, im.shape[2]])
+
+        if not show_axis:
+            ax.axis('off')
 
         ax.set_title(title)
 
-    plt.tight_layout()
     plt.show()
-    plt.pause(0.001)
+
+# %%
+'''
+from data_generation.generate_3d import ImageGenerator
+
+n = 7
+images, masks = imageGenerator.get_3D_batch(n)
+titles = [f"Image {i}" for i in range(n)]
+visualize_3d_matrices(images[:, 0], titles, "3D Images", show_axis=False)
+'''
