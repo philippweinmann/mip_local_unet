@@ -7,6 +7,7 @@ import random
 from skimage.measure import label, regionprops
 import numpy as np
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from data.visualizations import visualize_3d_matrices
 
 
 def print_logs_to_file(log_line, file_name=None):
@@ -33,9 +34,6 @@ def get_val_test_indexes():
         test_idxs.append(current_idx)
         counter += 1
 
-    print(f"validation patients: {val_idxs}")
-    print(f"testing patients: {test_idxs}")
-
     return val_idxs, test_idxs
 
 
@@ -46,14 +44,24 @@ def get_train_test_val_patches(patches_folder, dummy = False):
         return preprocessed_patches, preprocessed_patches[0:2], preprocessed_patches[2:4]
 
     val_idxs, test_idxs = get_val_test_indexes()
-    test_idxs_patches = get_all_patches_with_certain_idx(test_idxs, preprocessed_patches)
-    val_idxs_patches = get_all_patches_with_certain_idx(val_idxs, preprocessed_patches)
-
-    for idx_patches in test_idxs_patches + val_idxs_patches:
-        for patch in idx_patches:
-            # print(patch)
-            preprocessed_patches.remove(patch)
-
+    id_test_idxs_patches = get_all_patches_with_certain_idx(test_idxs, preprocessed_patches)
+    id_val_idxs_patches = get_all_patches_with_certain_idx(val_idxs, preprocessed_patches)
+    
+    # we need only the patches, not the ids
+    _, test_idxs_patches = zip(*id_test_idxs_patches)
+    _, val_idxs_patches = zip(*id_val_idxs_patches)
+    
+    # flatten the lists of lists
+    test_idxs_patches = [item for sublist in test_idxs_patches for item in sublist]
+    val_idxs_patches = [item for sublist in val_idxs_patches for item in sublist]
+    
+    for non_training_data_patch in test_idxs_patches + val_idxs_patches:
+        preprocessed_patches.remove(non_training_data_patch)
+            
+    print(f"patients for- training: {800 - len(id_val_idxs_patches) - len(id_test_idxs_patches)}, validation: {len(id_val_idxs_patches)}, testing: {len(id_test_idxs_patches)}")
+    
+    print(f"training patches: {len(preprocessed_patches)}, validation patches: {len(val_idxs_patches)}, test patches: {len(test_idxs_patches)}")
+    
     return preprocessed_patches, val_idxs_patches, test_idxs_patches
 
 def post_processing(prediction, threshold, distance_threshold_ratio = 0.5):
@@ -116,44 +124,58 @@ def post_processing(prediction, threshold, distance_threshold_ratio = 0.5):
     return result_array
 
 
-def test_or_validate_model(train_or_val_patches_lists, model, threshold = 0.3, visualize = False):
-    
+def test_or_validate_model(id_test_or_val_patches_lists, model, threshold = 0.3, visualize = False):
     print(f"selected threshold: {threshold}")
 
-    avg_dice_scores = 0
-    avg_dice_scores_b_pp = 0
-    avg_overlap_scores = 0
+    # pp stands for post processing.
+    avg_dice_scores_before_pp = 0
+    avg_dice_scores_after_pp = 0
+    avg_overlap_scores = 0 # before post processing
 
     amt_patch_patients = len(train_or_val_patches_lists)
-    for idx, train_or_val_patches_list in enumerate(train_or_val_patches_lists):
+    for idx, id_test_or_val_patches_list in enumerate(id_test_or_val_patches_lists):
         print(f"processing validation or test patient {idx + 1} / {amt_patch_patients}")
-
-        reconstructed_mask, reconstructed_prediction = combine_preprocessed_patches(train_or_val_patches_list, model)
-        reconstructed_prediction_without_preprocessing = reconstructed_prediction.copy()
-        reconstructed_prediction = post_processing(reconstructed_prediction, threshold = threshold)
         
+        # 0. Extract the id and the patches from test_or_val_patches_lists
+        patient_id = id_test_or_val_patches_list[0]
+        test_or_val_patches_list = id_test_or_val_patches_list[1]
+        
+        # 1. Combine the patches to images to be able to get proper scores from them.
+        reconstructed_mask, reconstructed_prediction = combine_preprocessed_patches(test_or_val_patches_list, model)
+        
+        # 2. Binarize the prediction
+        binarized_reconstructed_prediction = binarize_image_pp(reconstructed_prediction)
+        
+        # 3. To be able to visualize the post processing, we copy it before applying post processing.
+        # This is in case the post processing is or will be done inplace.
+        reconstructed_prediction_before_preprocessing = reconstructed_prediction.copy()
+        
+        # 4. Apply post processing
+        reconstructed_prediction_after_pp = post_processing(reconstructed_prediction, threshold = threshold)
+        
+        # 5. Calculate the dice scores on the image that is preprocessed and the one that is not preprocessed.
         # the thresholds here actually don't matter if we're binarizing before
-        dice_scores = calculate_dice_scores(reconstructed_mask, reconstructed_prediction, thresholds = [0.5])
-        dice_scores_bpp = calculate_dice_scores(reconstructed_mask, reconstructed_prediction_without_preprocessing, thresholds = [0.5])
+        patient_dice_scores_before_pp = calculate_dice_scores(reconstructed_mask, reconstructed_prediction_before_preprocessing, thresholds = [0.5])
+        patient_dice_scores_after_pp = calculate_dice_scores(reconstructed_mask, reconstructed_prediction_after_pp, thresholds = [0.5])
+        
         overlap_scores = calculate_overlap(reconstructed_mask, reconstructed_prediction, thresholds = [0.5])
 
-        avg_dice_scores += dice_scores[0]
-        avg_dice_scores_b_pp += dice_scores_bpp[0]
+        # 6. add them to the global ones to provide an average at the end.
+        avg_dice_scores_after_pp += patient_dice_scores_after_pp[0]
+        avg_dice_scores_before_pp += patient_dice_scores_before_pp[0]
         avg_overlap_scores += overlap_scores[0]
-    
-        print(f"dice scores before post processing: {dice_scores_bpp}")
-        print(f"dice scores after post processing: {dice_scores}")
-        print(f"overlap scores: {overlap_scores}")
 
         if visualize:
-            reconstructed_prediction = binarize_image_pp(reconstructed_prediction)
-            reconstructed_prediction_without_preprocessing = binarize_image_pp(reconstructed_prediction_without_preprocessing)
-            visualize3Dimageandmask(reconstructed_prediction, reconstructed_mask)
-            visualize3Dimage(reconstructed_prediction_without_preprocessing)
-
+            matrices = [reconstructed_prediction_before_preprocessing, reconstructed_prediction_after_pp, reconstructed_mask]
+            titles = ["prediction before post processing", "prediction after post processing", "mask"]
+            visualize_3d_matrices(matrices, titles, global_title = f"predictions on patient {patient_id}")
+        
+        print(f"overlap scores: {overlap_scores}")
+        print(f"dice scores before post processing: {patient_dice_scores_before_pp}")
+        print(f"dice scores after post processing: {patient_dice_scores_after_pp}")
+        
     avg_overlap_scores /= amt_patch_patients
-    avg_dice_scores /= amt_patch_patients
-    avg_dice_scores_b_pp /= amt_patch_patients
+    avg_dice_scores_after_pp /= amt_patch_patients
+    avg_dice_scores_before_pp /= amt_patch_patients
     
-    print(f"average dice scores before pp: {avg_dice_scores_b_pp}")
-    return avg_overlap_scores, avg_dice_scores, avg_dice_scores_b_pp
+    return avg_overlap_scores, avg_dice_scores_after_pp, avg_dice_scores_before_pp
