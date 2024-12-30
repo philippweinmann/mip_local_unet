@@ -10,17 +10,19 @@ def visualize_3d_matrices(matrices, titles, global_title = None, show_axis=True)
     # we want a max of 3 columns.
     amt_cols = min(3, amt_images)
     amt_rows = int(np.ceil(amt_images / amt_cols))
+    
+    figsize=(amt_cols * 10, amt_rows * 10)
 
-    fig = plt.figure()
+    fig = plt.figure(figsize=figsize)
     if global_title:
-        fig.suptitle(global_title)
+        fig.suptitle(global_title, y=0.95, fontsize=20)
 
     
     for i, (matrix, title) in enumerate(zip(matrices, titles)):
         # Iterating over the grid returns the Axes.
         x, y, z = np.where(matrix >= 0.5)
         ax = fig.add_subplot(amt_rows, amt_cols, i + 1, projection='3d')
-        ax.scatter(x, y, z, c='red', marker='o', s=0.5, alpha=0.2)
+        ax.scatter(x, y, z, c='red', marker='o', s=0.7, alpha=0.2)
 
         # Set labels even if we don't show them
         ax.set_xlabel('X')
@@ -34,16 +36,6 @@ def visualize_3d_matrices(matrices, titles, global_title = None, show_axis=True)
         if not show_axis:
             ax.axis('off')
 
-        ax.set_title(title)
+        ax.set_title(title, fontsize=18)
 
     plt.show()
-
-# %%
-'''
-from data_generation.generate_3d import ImageGenerator
-
-n = 7
-images, masks = imageGenerator.get_3D_batch(n)
-titles = [f"Image {i}" for i in range(n)]
-visualize_3d_matrices(images[:, 0], titles, "3D Images", show_axis=False)
-'''

@@ -46,7 +46,7 @@ def get_patients():
     # forgotten_ipynb_checkpoints = [file for file in training_files if "ipynb_checkpoints" in str(file)]
     training_files = [file for file in training_files if "ipynb_checkpoints" not in str(file)]
 
-    print("amt of detected_files: ", len(training_files))
+    # print("amt of detected_files: ", len(training_files))
 
     patients = []
 
@@ -72,7 +72,7 @@ def get_patients():
         else:
             raise ValueError(f"Unknown file type: {training_file}")
     
-    print("amt of patients: ", len(patients))
+    # print("amt of patients: ", len(patients))
 
     return patients
 

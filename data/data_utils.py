@@ -90,7 +90,7 @@ def combine_patches_into_3d_image(patches):
                 ] = current_patch
 
     # Verify if the reconstructed image matches the original dimensions
-    print(reconstructed_image.shape)
+    # print(reconstructed_image.shape)
 
     return reconstructed_image
 
@@ -99,7 +99,6 @@ def get_all_patches_with_certain_idx(ids, preprocessed_patches):
     returns a list of lists, each list has all the patches that have the same id as an item in ids.
     meant to be used to get validation or test sets.
     '''
-    
     idx_patches = [[] for _ in range(len(ids))]
     
     for preprocessed_patch in preprocessed_patches:
@@ -109,8 +108,10 @@ def get_all_patches_with_certain_idx(ids, preprocessed_patches):
             if current_patch_index == id:
                 idx_patches[counter].append(preprocessed_patch)
                 break
-
-    return idx_patches
+    
+    # we don't want to have to re extract the ids from the patch names.
+    id_idx_patches_list = [[key, values] for key, values in zip(ids, idx_patches)]
+    return id_idx_patches_list
 
 def combine_preprocessed_patches(patches, model = None):
     # we assume all patches have the same shape and are isomorphic cubes
@@ -177,7 +178,7 @@ def combine_preprocessed_patches(patches, model = None):
                     ] = current_prediction_patch
 
     # Verify if the reconstructed image matches the original dimensions
-    print(reconstructed_mask.shape)
+    # print(reconstructed_mask.shape)
     
     return reconstructed_mask, reconstructed_prediction
 # %%

@@ -19,5 +19,6 @@ setup(name='mip_unet',
         "scipy==1.14.1",
         "nibabel",
         "optuna",
+        "torch",
     ],
      )
