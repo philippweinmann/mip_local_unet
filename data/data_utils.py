@@ -90,7 +90,7 @@ def combine_patches_into_3d_image(patches):
                 ] = current_patch
 
     # Verify if the reconstructed image matches the original dimensions
-    print(reconstructed_image.shape)
+    # print(reconstructed_image.shape)
 
     return reconstructed_image
 
@@ -178,7 +178,7 @@ def combine_preprocessed_patches(patches, model = None):
                     ] = current_prediction_patch
 
     # Verify if the reconstructed image matches the original dimensions
-    print(reconstructed_mask.shape)
+    # print(reconstructed_mask.shape)
     
     return reconstructed_mask, reconstructed_prediction
 # %%

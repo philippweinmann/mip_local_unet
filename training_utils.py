@@ -132,7 +132,7 @@ def test_or_validate_model(id_test_or_val_patches_lists, model, threshold = 0.3,
     avg_dice_scores_after_pp = 0
     avg_overlap_scores = 0 # before post processing
 
-    amt_patch_patients = len(train_or_val_patches_lists)
+    amt_patch_patients = len(id_test_or_val_patches_lists)
     for idx, id_test_or_val_patches_list in enumerate(id_test_or_val_patches_lists):
         print(f"processing validation or test patient {idx + 1} / {amt_patch_patients}")
         
@@ -159,7 +159,7 @@ def test_or_validate_model(id_test_or_val_patches_lists, model, threshold = 0.3,
         patient_dice_scores_after_pp = calculate_dice_scores(reconstructed_mask, reconstructed_prediction_after_pp, thresholds = [0.5])
         
         overlap_scores = calculate_overlap(reconstructed_mask, reconstructed_prediction, thresholds = [0.5])
-
+        
         # 6. add them to the global ones to provide an average at the end.
         avg_dice_scores_after_pp += patient_dice_scores_after_pp[0]
         avg_dice_scores_before_pp += patient_dice_scores_before_pp[0]
@@ -167,12 +167,18 @@ def test_or_validate_model(id_test_or_val_patches_lists, model, threshold = 0.3,
 
         if visualize:
             matrices = [reconstructed_prediction_before_preprocessing, reconstructed_prediction_after_pp, reconstructed_mask]
-            titles = ["prediction before post processing", "prediction after post processing", "mask"]
-            visualize_3d_matrices(matrices, titles, global_title = f"predictions on patient {patient_id}")
+            titles = ["pred, no pp", "pred after pp", "mask"]
+            visualize_3d_matrices(matrices, titles, global_title = f"predictions on patient with id: {patient_id}")
+            # make some space between the graphs and the scores.
+            print("\n\n\n")
         
-        print(f"overlap scores: {overlap_scores}")
-        print(f"dice scores before post processing: {patient_dice_scores_before_pp}")
-        print(f"dice scores after post processing: {patient_dice_scores_after_pp}")
+        
+        print(f"{[f'{score:.4f}' for score in overlap_scores]}: overlap scores")
+        print(f"{[f'{score:.4f}' for score in patient_dice_scores_before_pp]}: dice scores before post processing")
+        print(f"{[f'{score:.4f}' for score in patient_dice_scores_after_pp]}: dice scores after post processing")
+        
+        # make space for the next patient
+        print("\n\n")
         
     avg_overlap_scores /= amt_patch_patients
     avg_dice_scores_after_pp /= amt_patch_patients
