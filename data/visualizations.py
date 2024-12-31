@@ -40,18 +40,26 @@ def visualize_3d_matrices(matrices, titles, global_title = None, show_axis=True)
 
     plt.show()
     
-def visualize_model_confidence(prediction: np.array):
+def visualize_model_confidence(prediction: np.array, title = None):
     flattended_pred = prediction.flatten()
+    
     count_0s = np.sum(flattended_pred == 0)
     count_1s = np.sum(flattended_pred == 1)
     neither_count = np.sum((flattended_pred != 0) & (flattended_pred != 1))
     
     print(f"{neither_count}: not 0, nor 1\n{count_0s}: 0s\n{count_1s}: 1s")
     
-    plt.hist(flattended_pred, bins=50)
+    # clipping:
+    clipped_flattended_pred = np.clip(flattended_pred, -10, 10)
+    
+    plt.hist(clipped_flattended_pred, bins=20)
     
     plt.xlabel("bin means")
     plt.ylabel("amount of elements in bin")
-    plt.title("confidence visualization of the model")
+
+    if title == None:
+        title = "confidence visualization of the model"
+    
+    plt.title(title)
     
     plt.show()

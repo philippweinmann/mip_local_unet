@@ -143,7 +143,7 @@ def test_or_validate_model(id_test_or_val_patches_lists, model, threshold = 0.3,
 
         
         # 1. Combine the patches to images to be able to get proper scores from them.
-        reconstructed_mask, reconstructed_prediction = combine_preprocessed_patches(test_or_val_patches_list, model)
+        reconstructed_mask, reconstructed_prediction, reconstructed_prediction_before_sigmoid = combine_preprocessed_patches(test_or_val_patches_list, model)
         untouched_reconstructed_prediction = reconstructed_prediction.copy()
         
         # 2. Binarize the prediction
@@ -174,8 +174,10 @@ def test_or_validate_model(id_test_or_val_patches_lists, model, threshold = 0.3,
             titles = ["pred, no pp", "pred after pp", "mask"]
             visualize_3d_matrices(matrices, titles, global_title = f"predictions on patient with id: {patient_id}")
             
+            
         if plot_model_confidence:
-            visualize_model_confidence(untouched_reconstructed_prediction)
+            visualize_model_confidence(reconstructed_prediction_before_sigmoid, title = "before sigmoid")
+            visualize_model_confidence(untouched_reconstructed_prediction, title = "after sigmoid")
         
         # make some space between the graphs and the scores.
         print("\n\n\n")
