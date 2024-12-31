@@ -150,8 +150,13 @@ def combine_preprocessed_patches(patches, model = None):
         reconstructed_prediction = np.zeros((patch_size * (max_x + 1),
                                 patch_size * (max_y + 1),
                                 patch_size * (max_z + 1)))
+        reconstructed_prediction_before_sigmoid = np.zeros((patch_size * (max_x + 1),
+                                patch_size * (max_y + 1),
+                                patch_size * (max_z + 1)))
+        
     else:
         reconstructed_prediction = None
+        reconstructed_prediction_before_sigmoid = None
     
     for i in range(max_x + 1):
         for j in range(max_y + 1):
@@ -168,19 +173,26 @@ def combine_preprocessed_patches(patches, model = None):
                 if model is not None:
                     current_image_patch = prepare_image_for_network_input(current_image_patch)
                     with torch.no_grad():
-                        current_prediction_patch = model(current_image_patch)
+                        current_prediction_patch, current_prediction_patch_before_sigmoid = model(current_image_patch)
                         current_prediction_patch = prepare_image_for_analysis(current_prediction_patch)
+                        current_prediction_patch_before_sigmoid = prepare_image_for_analysis(current_prediction_patch_before_sigmoid)
                     
                     reconstructed_prediction[
                         i * patch_size:(i + 1) * patch_size,
                         j * patch_size:(j + 1) * patch_size,
                         k * patch_size:(k + 1) * patch_size
                     ] = current_prediction_patch
+                    
+                    reconstructed_prediction_before_sigmoid[
+                        i * patch_size:(i + 1) * patch_size,
+                        j * patch_size:(j + 1) * patch_size,
+                        k * patch_size:(k + 1) * patch_size
+                    ] = current_prediction_patch_before_sigmoid
 
     # Verify if the reconstructed image matches the original dimensions
     # print(reconstructed_mask.shape)
     
-    return reconstructed_mask, reconstructed_prediction
+    return reconstructed_mask, reconstructed_prediction, reconstructed_prediction_before_sigmoid
 # %%
 def get_padded_patches(image, mask, patch_size):
     block_shape = (patch_size, patch_size, patch_size)

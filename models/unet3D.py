@@ -3,6 +3,8 @@ import torch.nn as nn
 import torch
 import torch.nn.functional as F
 import numpy as np
+from data.visualizations import visualize_model_confidence
+from models.net_utils import prepare_image_for_analysis
 
 import os
 
@@ -99,11 +101,11 @@ class UNet3D(nn.Module):
         up_3 = self.up_convolution_3(up_2, down_2)
         up_4 = self.up_convolution_4(up_3, down_1)
   
-        out = self.out(up_4)
+        out_before_sigmoid = self.out(up_4)
 
         # let's adapt the output for the loss
-        out = torch.sigmoid(out)
-        return out
+        sigmoid_out = torch.sigmoid(out_before_sigmoid)
+        return sigmoid_out, out_before_sigmoid
     
 # -------Loss-Functions----------
 
