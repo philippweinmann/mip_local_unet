@@ -64,13 +64,13 @@ def visualize_model_confidence(prediction: np.array, title = None):
     
     plt.show()
 
-def create_2Dimagegrid(images, titles, global_title = None):
+def create_2Dimagegrid(images, titles, global_title = None, max_cols = 3):
     amt_images = len(images)
-    if amt_images > 9:
-        raise ValueError("Cannot show more than 9 images")
+    if amt_images > 9 * max_cols:
+        raise ValueError("Cannot show more than 9 rows")
     
-    ncols = min(amt_images, 3)
-    nrows = int(np.ceil(amt_images / 3))
+    ncols = min(amt_images, max_cols)
+    nrows = int(np.ceil(amt_images / max_cols))
 
     figure = plt.figure()
 
@@ -80,7 +80,9 @@ def create_2Dimagegrid(images, titles, global_title = None):
     for i, (image, title) in enumerate(zip(images, titles)):
         ax = figure.add_subplot(nrows, ncols, i + 1)
         ax.set_title(title)
-        ax.imshow(image)
+
+        # gray should be ignored if the image is rgb
+        ax.imshow(image, cmap='gray')
 
         ax.axis("off")
     
