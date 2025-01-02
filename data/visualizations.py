@@ -71,8 +71,9 @@ def create_2Dimagegrid(images, titles, global_title = None, max_cols = 3):
     
     ncols = min(amt_images, max_cols)
     nrows = int(np.ceil(amt_images / max_cols))
-
-    figure = plt.figure()
+    
+    figsize = (ncols * 5, nrows * 5)
+    figure = plt.figure(figsize=figsize)
 
     if global_title is not None:
         figure.suptitle(global_title)
@@ -86,6 +87,7 @@ def create_2Dimagegrid(images, titles, global_title = None, max_cols = 3):
 
         ax.axis("off")
     
+    plt.tight_layout()
     plt.show()
 
 # %%

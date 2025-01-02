@@ -21,12 +21,6 @@ def resample_image(image, original_spacing, target_spacing = target_voxel_spacin
     resampled_image = zoom(image, zoom_factors, order=1)  # Linear interpolation
     return resampled_image
 
-def clip_scans(image, min_value, max_value):
-    image[image < min_value] = min_value
-    image[image > max_value] = max_value
-
-    return image
-
 def min_max_normalize(image, min_value, max_value):
     image = (image - min_value) / (max_value - min_value)
 
