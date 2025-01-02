@@ -63,3 +63,27 @@ def visualize_model_confidence(prediction: np.array, title = None):
     plt.title(title)
     
     plt.show()
+
+def create_2Dimagegrid(images, titles, global_title = None):
+    amt_images = len(images)
+    if amt_images > 9:
+        raise ValueError("Cannot show more than 9 images")
+    
+    ncols = min(amt_images, 3)
+    nrows = int(np.ceil(amt_images / 3))
+
+    figure = plt.figure()
+
+    if global_title is not None:
+        figure.suptitle(global_title)
+
+    for i, (image, title) in enumerate(zip(images, titles)):
+        ax = figure.add_subplot(nrows, ncols, i + 1)
+        ax.set_title(title)
+        ax.imshow(image)
+
+        ax.axis("off")
+    
+    plt.show()
+
+# %%
