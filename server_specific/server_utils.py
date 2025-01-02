@@ -29,6 +29,12 @@ class Patient:
         
         return image, mask
     
+    def get_voxel_spacings(self):
+        image = nib.load(self.image_fp)
+        original_spacing = image.header.get_zooms()[:3]
+        
+        return original_spacing
+        
     def get_preprocessed_image_mask_tuple(self):
         image, mask = self.get_image_mask_tuple()
 
