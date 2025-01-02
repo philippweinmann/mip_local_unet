@@ -26,12 +26,15 @@ class Patient:
     def get_image_mask_tuple(self):
         image = nib.load(self.image_fp).get_fdata()
         mask = nib.load(self.label_fp).get_fdata()
-
-        # x, y, z to z, x, y
-        image = image.transpose(2, 1, 0)
-        mask = mask.transpose(2, 1, 0)
+        
         return image, mask
     
+    def get_voxel_spacings(self):
+        image = nib.load(self.image_fp)
+        original_spacing = image.header.get_zooms()[:3]
+        
+        return original_spacing
+        
     def get_preprocessed_image_mask_tuple(self):
         image, mask = self.get_image_mask_tuple()
 

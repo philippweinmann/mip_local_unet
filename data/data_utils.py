@@ -16,21 +16,7 @@ def get_voxel_spacing(image_fp):
     
     return [img_x_dim_spacing, img_y_dim_spacing, img_z_dim_spacing]
 
-def resample_image(image, original_spacing, target_spacing = target_voxel_spacing):
-    zoom_factors = [original_spacing[i] / target_spacing[i] for i in range(3)]
-    resampled_image = zoom(image, zoom_factors, order=1)  # Linear interpolation
-    return resampled_image
 
-def clip_scans(image, min_value, max_value):
-    image[image < min_value] = min_value
-    image[image > max_value] = max_value
-
-    return image
-
-def min_max_normalize(image, min_value, max_value):
-    image = (image - min_value) / (max_value - min_value)
-
-    return image
 
 def pad_image(image, patch_size):
     shape = image.shape
