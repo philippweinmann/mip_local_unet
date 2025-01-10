@@ -8,6 +8,7 @@ from skimage.measure import label, regionprops
 import numpy as np
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from data.visualizations import visualize_3d_matrices, visualize_model_confidence
+from pathlib import Path
 
 
 def print_logs_to_file(log_line, file_name=None):
@@ -195,7 +196,7 @@ def test_or_validate_model(id_test_or_val_patches_lists, model, threshold = 0.3,
     
     return avg_overlap_scores, avg_dice_scores_after_pp, avg_dice_scores_before_pp
 
-def predict_hidden_test_data(id_test_or_val_patches_lists, model, threshold = 0.3, visualize = False, out_dir = None):
+def predict_hidden_test_data(id_test_or_val_patches_lists, model, visualize, out_dir, threshold = 0.3):
     print(f"selected threshold: {threshold}")
 
     amt_patch_patients = len(id_test_or_val_patches_lists)
@@ -226,5 +227,11 @@ def predict_hidden_test_data(id_test_or_val_patches_lists, model, threshold = 0.
             titles = ["pred, no pp", "pred after pp"]
             visualize_3d_matrices(matrices, titles, global_title = f"predictions on patient with id: {patient_id}")
             
+        # now we save it
+        current_save_path = Path(out_dir / f"{patient_id}_prediction.npz")
+        np.savez(current_save_path, prediction = reconstructed_prediction_after_pp)
+        
+        print(f"saved patient with idx: {patient_id} at location: {current_save_path}")
+
         # make space for the next patient
         print("\n\n")
