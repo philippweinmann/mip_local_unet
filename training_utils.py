@@ -194,3 +194,37 @@ def test_or_validate_model(id_test_or_val_patches_lists, model, threshold = 0.3,
     avg_dice_scores_before_pp /= amt_patch_patients
     
     return avg_overlap_scores, avg_dice_scores_after_pp, avg_dice_scores_before_pp
+
+def predict_hidden_test_data(id_test_or_val_patches_lists, model, threshold = 0.3, visualize = False, out_dir = None):
+    print(f"selected threshold: {threshold}")
+
+    amt_patch_patients = len(id_test_or_val_patches_lists)
+    for idx, id_test_or_val_patches_list in enumerate(id_test_or_val_patches_lists):
+        # 0. Extract the id and the patches from test_or_val_patches_lists
+        patient_id = id_test_or_val_patches_list[0]
+        test_or_val_patches_list = id_test_or_val_patches_list[1]
+        
+        print(f"processing hidden test patient {idx + 1} / {amt_patch_patients}, patient_id: {patient_id}")
+        
+        # 1. Combine the patches to images to be able to get proper scores from them.
+        reconstructed_mask, reconstructed_prediction, reconstructed_prediction_before_sigmoid = combine_preprocessed_patches(test_or_val_patches_list, model)
+        untouched_reconstructed_prediction = reconstructed_prediction.copy()
+        
+        # 2. Binarize the prediction
+        reconstructed_binarized_prediction_before_preprocessing = binarize_image_pp(reconstructed_prediction, threshold = threshold)
+        
+        # 3. To be able to visualize the post processing, we copy it before applying post processing.
+        # This is in case the post processing is or will be done inplace.
+        # The copy will not be touched before plotting it
+        reconstructed_binarized_prediction_before_preprocessing_copy = reconstructed_binarized_prediction_before_preprocessing.copy()
+        
+        # 4. Apply post processing
+        reconstructed_prediction_after_pp = post_processing(reconstructed_binarized_prediction_before_preprocessing, threshold = threshold)
+
+        if visualize:
+            matrices = [reconstructed_binarized_prediction_before_preprocessing_copy, reconstructed_prediction_after_pp]
+            titles = ["pred, no pp", "pred after pp"]
+            visualize_3d_matrices(matrices, titles, global_title = f"predictions on patient with id: {patient_id}")
+            
+        # make space for the next patient
+        print("\n\n")

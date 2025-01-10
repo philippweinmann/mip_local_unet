@@ -99,7 +99,7 @@ def get_all_patches_with_certain_idx(ids, preprocessed_patches):
     id_idx_patches_list = [[key, values] for key, values in zip(ids, idx_patches)]
     return id_idx_patches_list
 
-def combine_preprocessed_patches(patches, model = None):
+def combine_preprocessed_patches(patches, model = None, with_label = False):
     # we assume all patches have the same shape and are isomorphic cubes
     image, _ = get_image_mask_from_patch_fp(patches[0])
     patch_size = image.shape[0]
@@ -283,8 +283,13 @@ def get_image_mask_from_patch_fp(patch_fp, dummy=False):
 
     patch = np.load(patch_fp)
     image = patch["image"]
-    mask = patch["mask"].astype(np.bool_)
+    
+    # returns none if there is no mask
+    mask = patch.get("mask")
 
+    if mask is not None:
+        mask = mask.astype(np.bool_)
+    
     return image, mask
 
 def get_idx_from_patch_fp(patch_fp):
