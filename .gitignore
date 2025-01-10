@@ -200,3 +200,5 @@ preprocessed_patches/*
 preprocessed_patches_centered/*
 saved_models/*
 training_logs/*
+hidden_test_patients_patches/*
+hidden_test_patients_predictions/*

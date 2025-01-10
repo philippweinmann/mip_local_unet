@@ -43,8 +43,8 @@ class Patient:
 
         return image, mask
 
-def get_patients():
-    training_files = list(training_data_folder.iterdir())
+def get_patients(folder_fp = training_data_folder):
+    training_files = list(folder_fp.iterdir())
 
     # forgotten_ipynb_checkpoints = [file for file in training_files if "ipynb_checkpoints" in str(file)]
     training_files = [file for file in training_files if "ipynb_checkpoints" not in str(file)]
