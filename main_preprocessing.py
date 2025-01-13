@@ -18,7 +18,7 @@ clipping_max = 1000
 patch_size = 128
 
 # %%
-def save_patches_for_patient(patient, output_dir=output_dir, image_only = False):
+def pp_and_save_patches_for_patient(patient, output_dir=output_dir, image_only = False):
     image = nib.load(patient.image_fp)
     if not image_only:
         mask = nib.load(patient.label_fp)
@@ -35,6 +35,7 @@ def save_patches_for_patient(patient, output_dir=output_dir, image_only = False)
 
     # min/max normalize
     image = min_max_normalization(image, clipping_min, clipping_max)
+    shape_before_padding = image.shape
 
     # pad the image and mask as preparation for patching
     image, _ = pad_image(image, patch_size = patch_size)
@@ -55,14 +56,23 @@ def save_patches_for_patient(patient, output_dir=output_dir, image_only = False)
             for z_dim in range(image_patch_shape[2]):
                 current_image_patch = image_patches[x_dim, y_dim, z_dim]
                 
-                if not image_only:
-                    current_mask_patch = mask_patches[x_dim, y_dim, z_dim]
-
-                    np.savez(output_dir / f"{patient.idx}_image_and_mask_patch_{x_dim}_{y_dim}_{z_dim}.npz", image = current_image_patch, mask = current_mask_patch)
-                else:
-                    np.savez(output_dir / f"{patient.idx}_image_patch_{x_dim}_{y_dim}_{z_dim}.npz", image = current_image_patch)
-
+                # yes I know we should also save x, y and zdim in the patch_dict, but we got something that works, let's not touch it unless necessary.
+                file_name = f"{patient.idx}_patch_{x_dim}_{y_dim}_{z_dim}.npz"
+                patch_dict = {
+                    "image": current_image_patch,
+                    "idx": patient.idx,
+                    "mask": None if image_only else mask_patches[x_dim, y_dim, z_dim],
+                }
+                    
+                np.savez(output_dir / file_name, **patch_dict)
+    
+    # returning the shape before padding, so that we can save it 
+    # and remove the padding before post processing.
+    return shape_before_padding
+                
 def preprocess_and_save_ccta_scans(patients, amt_patients = None, output_dir=output_dir, image_only = False):
+    shapes_before_padding = {}
+    
     if amt_patients is None:
         amt_patients = len(patients)
 
@@ -71,12 +81,14 @@ def preprocess_and_save_ccta_scans(patients, amt_patients = None, output_dir=out
     for p_idx, patient in enumerate(patients):
         print(f"processing patient: {p_idx} / {amt_patients}")
 
-        save_patches_for_patient(patient=patient, output_dir=output_dir, image_only = image_only)
+        shape_before_padding = pp_and_save_patches_for_patient(patient=patient, output_dir=output_dir, image_only = image_only)
+        shapes_before_padding[patient.idx] = shape_before_padding
         counter += 1
 
         if counter > amt_patients:
             break
 
     print("Done")
+    return shapes_before_padding
 
 # preprocess_and_save_ccta_scans(get_patients(), amt_patients=None, output_dir=output_test_dir)
