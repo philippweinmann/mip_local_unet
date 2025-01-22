@@ -264,6 +264,8 @@ def evaluate_graph_extraction(folder_true, folder_pred):
             graph_gt = json.load(f)
         
         gt_root_nodes = [node for node in graph_gt['nodes'] if node['is_root']==True]
+        print(f"gt_root_nodes: {gt_root_nodes}, length: {len(gt_root_nodes)}")
+        print(f"gt_root_nodes[0]: {gt_root_nodes[0]}, gt_root_nodes[1]: {gt_root_nodes[1]}")
         gt_root_node_id_right = gt_root_nodes[0]['id'] if gt_root_nodes[0]['pos'][1]>gt_root_nodes[1]['pos'][1] else gt_root_nodes[1]['id']
         gt_root_node_id_left = gt_root_nodes[0]['id'] if gt_root_nodes[0]['pos'][1]<gt_root_nodes[1]['pos'][1] else gt_root_nodes[1]['id']
         
