@@ -374,6 +374,7 @@ def fix_position_key(graph):
 
 # +
 def get_label_from_mask_fp(mask_fp):
+    mask_fp = Path(mask_fp)
     return mask_fp.stem.split(".")[0]
 
 # print(get_label_from_mask_fp(label_fp))
@@ -460,15 +461,13 @@ def create_graph_pipeline(mask_fp, submission_fp):
 
 # +
 # Define the directory and file extension
-directory = "/submission/gecko/"
+# directory = "/submission/gecko/"
+directory = "/group/gecko/oberbabo/results/output_model_ensemble/"
 file_extension = ".label.nii.gz"
 submissions_folder = "/submission/gecko/test_set"
 
 if __name__ == "__main__":
     file_list = [file for file in os.listdir(directory) if file.endswith(file_extension)]
-
-    # let's just do the first element for now
-    file_list = file_list[0]
 
     for file in file_list:
         create_graph_pipeline(directory + file, submissions_folder)
